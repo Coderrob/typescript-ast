@@ -1,0 +1,319 @@
+    2:1   error  Import "@typescript-eslint/types" should come before "@typescript-eslint/typescript-estree"  zero-tolerance/sort-imports
+   15:10  error  Type assertion "as TSESTree.CallExpression" is not allowed                                   zero-tolerance/no-type-assertion
+   15:11  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+   18:19  error  Function "<anonymous>" has 126 lines (max 15); keep functions small and focused              zero-tolerance/max-function-lines
+   19:33  error  Function "<anonymous>" has 21 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+   20:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   22:32  error  Type assertion "as TSESTree.LeftHandSideExpression" is not allowed                           zero-tolerance/no-type-assertion
+   25:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   27:32  error  Type assertion "as TSESTree.LeftHandSideExpression" is not allowed                           zero-tolerance/no-type-assertion
+   30:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   32:32  error  Type assertion "as TSESTree.LeftHandSideExpression" is not allowed                           zero-tolerance/no-type-assertion
+   35:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   37:32  error  Type assertion "as TSESTree.LeftHandSideExpression" is not allowed                           zero-tolerance/no-type-assertion
+   41:35  error  Function "<anonymous>" has 16 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+   42:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   47:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   52:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   59:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   64:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   70:27  error  Function "<anonymous>" has 16 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+   71:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   76:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   81:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   87:33  error  Function "<anonymous>" has 21 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+   88:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   93:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   98:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  103:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  110:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  116:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  122:44  error  Function "<anonymous>" has 21 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+  123:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  128:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  133:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  138:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+    2:1   error  Import "@typescript-eslint/types" should come before "@typescript-eslint/typescript-estree"  zero-tolerance/sort-imports
+   22:20  error  Function "<anonymous>" has 262 lines (max 15); keep functions small and focused              zero-tolerance/max-function-lines
+   23:28  error  Function "<anonymous>" has 18 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+   24:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   26:21  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+   29:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   31:21  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+   34:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   37:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   43:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   45:21  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+   48:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   50:21  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+   53:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   59:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   61:21  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+   64:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   66:21  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+   69:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   74:25  error  Function "<anonymous>" has 20 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+   75:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   77:21  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+   80:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   82:21  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+   85:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   87:21  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+   90:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   96:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   98:21  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+  101:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  103:21  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+  106:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  112:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  114:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+  117:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  119:21  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+  122:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  127:33  error  Function "<anonymous>" has 16 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+  128:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  130:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+  131:21  error  Type assertion "as TSESTree.BlockStatement" is not allowed                                   zero-tolerance/no-type-assertion
+  134:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  139:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  144:30  error  Function "<anonymous>" has 26 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+  145:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  149:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  151:20  error  Type assertion "as TSESTree.VariableDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+  152:21  error  Type assertion "as TSESTree.VariableDeclarator" is not allowed                               zero-tolerance/no-type-assertion
+  155:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  157:20  error  Type assertion "as TSESTree.VariableDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+  158:21  error  Type assertion "as TSESTree.VariableDeclarator" is not allowed                               zero-tolerance/no-type-assertion
+  161:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  163:21  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+  166:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  171:37  error  Function "<anonymous>" has 17 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+  172:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  174:19  error  Type assertion "as TSESTree.ClassDeclaration" is not allowed                                 zero-tolerance/no-type-assertion
+  175:20  error  Type assertion "as TSESTree.MethodDefinition" is not allowed                                 zero-tolerance/no-type-assertion
+  176:18  error  Type assertion "as TSESTree.FunctionExpression" is not allowed                               zero-tolerance/no-type-assertion
+  179:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  181:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+  184:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  190:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  192:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+  193:21  error  Type assertion "as TSESTree.Identifier" is not allowed                                       zero-tolerance/no-type-assertion
+  196:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  202:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  204:20  error  Type assertion "as TSESTree.VariableDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+  205:20  error  Type assertion "as TSESTree.TSAsExpression" is not allowed                                   zero-tolerance/no-type-assertion
+  205:21  error  Type assertion "as TSESTree.VariableDeclarator" is not allowed                               zero-tolerance/no-type-assertion
+  208:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  214:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  216:21  error  Type assertion "as TSESTree.TSTypeAliasDeclaration" is not allowed                           zero-tolerance/no-type-assertion
+  219:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  225:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  227:21  error  Type assertion "as TSESTree.TSTypeAliasDeclaration" is not allowed                           zero-tolerance/no-type-assertion
+  228:27  error  Type assertion "as TSESTree.TSTypeLiteral" is not allowed                                    zero-tolerance/no-type-assertion
+  231:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  237:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  239:21  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+  242:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  244:21  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+  247:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  253:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  255:21  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+  258:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  260:21  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+  263:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  269:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  271:21  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+  274:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  276:21  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+  279:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+    2:1   error  Import "@typescript-eslint/types" should come before "@typescript-eslint/typescript-estree"  zero-tolerance/sort-imports
+   12:24  error  Parameter "ast" should use readonly typing (for example Readonly<T> or readonly arrays)      zero-tolerance/prefer-readonly-parameters
+   18:11  error  Avoid object mutation (assignment); return a new object instead of mutating existing state   zero-tolerance/no-object-mutation
+   18:12  error  Type assertion "as TSESTree.Node & { parent: TSESTree.Node }" is not allowed                 zero-tolerance/no-type-assertion
+   26:24  error  Function "<anonymous>" has 129 lines (max 15); keep functions small and focused              zero-tolerance/max-function-lines
+   27:28  error  Function "<anonymous>" has 23 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+   28:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   31:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   32:21  error  Type assertion "as TSESTree.BlockStatement" is not allowed                                   zero-tolerance/no-type-assertion
+   33:19  error  Type assertion "as TSESTree.ReturnStatement" is not allowed                                  zero-tolerance/no-type-assertion
+   38:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   41:20  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+   46:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   51:37  error  Function "<anonymous>" has 22 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+   52:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   55:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   56:21  error  Type assertion "as TSESTree.BlockStatement" is not allowed                                   zero-tolerance/no-type-assertion
+   62:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   69:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   74:32  error  Function "<anonymous>" has 31 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+   75:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   78:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   79:21  error  Type assertion "as TSESTree.BlockStatement" is not allowed                                   zero-tolerance/no-type-assertion
+   86:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   89:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   90:21  error  Type assertion "as TSESTree.BlockStatement" is not allowed                                   zero-tolerance/no-type-assertion
+  101:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  106:39  error  Function "<anonymous>" has 22 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+  107:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  110:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+  111:21  error  Type assertion "as TSESTree.BlockStatement" is not allowed                                   zero-tolerance/no-type-assertion
+  117:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  120:20  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+  124:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  129:39  error  Function "<anonymous>" has 25 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+  130:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  132:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+  133:21  error  Type assertion "as TSESTree.BlockStatement" is not allowed                                   zero-tolerance/no-type-assertion
+  139:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  141:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+  142:21  error  Type assertion "as TSESTree.BlockStatement" is not allowed                                   zero-tolerance/no-type-assertion
+  147:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  149:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+  150:21  error  Type assertion "as TSESTree.BlockStatement" is not allowed                                   zero-tolerance/no-type-assertion
+    2:1   error  Import "@typescript-eslint/types" should come before "@typescript-eslint/typescript-estree"  zero-tolerance/sort-imports
+   12:24  error  Function "<anonymous>" has 103 lines (max 15); keep functions small and focused              zero-tolerance/max-function-lines
+   14:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   16:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   22:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   24:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   30:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   32:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   38:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   40:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   46:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   48:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   53:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   55:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   61:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   63:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   67:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   69:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   74:40  error  Function "<anonymous>" has 22 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+   75:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   77:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   80:15  error  Type assertion "as TSESTree.Identifier" is not allowed                                       zero-tolerance/no-type-assertion
+   83:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   85:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   87:15  error  Type assertion "as TSESTree.Identifier" is not allowed                                       zero-tolerance/no-type-assertion
+   90:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   92:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   97:48  error  Function "<anonymous>" has 17 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+   98:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  100:19  error  Type assertion "as TSESTree.ClassDeclaration" is not allowed                                 zero-tolerance/no-type-assertion
+  101:20  error  Type assertion "as TSESTree.MethodDefinition" is not allowed                                 zero-tolerance/no-type-assertion
+  102:18  error  Type assertion "as TSESTree.FunctionExpression" is not allowed                               zero-tolerance/no-type-assertion
+  108:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  110:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   3:1   error  Import "@typescript-eslint/types" should come before "@typescript-eslint/visitor-keys"  zero-tolerance/sort-imports
+  11:14  error  Type assertion "as Record<string, readonly string[]>" is not allowed                    zero-tolerance/no-type-assertion
+  13:20  error  Function "<anonymous>" has 78 lines (max 15); keep functions small and focused          zero-tolerance/max-function-lines
+  14:37  error  Function "<anonymous>" has 19 lines (max 15); keep functions small and focused          zero-tolerance/max-function-lines
+  15:8   error  Test description should start with "should"                                             zero-tolerance/require-test-description-style
+  21:8   error  Test description should start with "should"                                             zero-tolerance/require-test-description-style
+  27:8   error  Test description should start with "should"                                             zero-tolerance/require-test-description-style
+  34:30  error  Function "<anonymous>" has 21 lines (max 15); keep functions small and focused          zero-tolerance/max-function-lines
+  35:8   error  Test description should start with "should"                                             zero-tolerance/require-test-description-style
+  42:8   error  Test description should start with "should"                                             zero-tolerance/require-test-description-style
+  48:8   error  Test description should start with "should"                                             zero-tolerance/require-test-description-style
+  52:15  error  Type assertion "as TSESTree.Identifier" is not allowed                                  zero-tolerance/no-type-assertion
+  56:42  error  Function "<anonymous>" has 34 lines (max 15); keep functions small and focused          zero-tolerance/max-function-lines
+  57:8   error  Test description should start with "should"                                             zero-tolerance/require-test-description-style
+  68:8   error  Test description should start with "should"                                             zero-tolerance/require-test-description-style
+  74:33  error  Magic string "ExpressionStatement" is not allowed; extract it into a named constant     zero-tolerance/no-magic-strings
+  79:8   error  Test description should start with "should"                                             zero-tolerance/require-test-description-style
+    2:1   error  Import "@typescript-eslint/types" should come before "@typescript-eslint/typescript-estree"  zero-tolerance/sort-imports
+   10:24  error  Parameter "ast" should use readonly typing (for example Readonly<T> or readonly arrays)      zero-tolerance/prefer-readonly-parameters
+   16:11  error  Avoid object mutation (assignment); return a new object instead of mutating existing state   zero-tolerance/no-object-mutation
+   16:12  error  Type assertion "as TSESTree.Node & { parent: TSESTree.Node }" is not allowed                 zero-tolerance/no-type-assertion
+   24:24  error  Function "<anonymous>" has 97 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+   25:40  error  Function "<anonymous>" has 24 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+   26:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   28:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   29:21  error  Type assertion "as TSESTree.BlockStatement" is not allowed                                   zero-tolerance/no-type-assertion
+   35:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   37:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   38:21  error  Type assertion "as TSESTree.BlockStatement" is not allowed                                   zero-tolerance/no-type-assertion
+   42:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   44:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   45:21  error  Type assertion "as TSESTree.BlockStatement" is not allowed                                   zero-tolerance/no-type-assertion
+   50:34  error  Function "<anonymous>" has 16 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+   51:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   53:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   54:21  error  Type assertion "as TSESTree.BlockStatement" is not allowed                                   zero-tolerance/no-type-assertion
+   59:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   61:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   62:21  error  Type assertion "as TSESTree.BlockStatement" is not allowed                                   zero-tolerance/no-type-assertion
+   67:44  error  Function "<anonymous>" has 27 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+   68:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   70:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   71:21  error  Type assertion "as TSESTree.BlockStatement" is not allowed                                   zero-tolerance/no-type-assertion
+   75:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   77:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   78:21  error  Type assertion "as TSESTree.BlockStatement" is not allowed                                   zero-tolerance/no-type-assertion
+   82:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   84:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   85:21  error  Type assertion "as TSESTree.BlockStatement" is not allowed                                   zero-tolerance/no-type-assertion
+   89:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   95:44  error  Function "<anonymous>" has 25 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+   96:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   99:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+  100:21  error  Type assertion "as TSESTree.BlockStatement" is not allowed                                   zero-tolerance/no-type-assertion
+  106:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  109:18  error  Type assertion "as TSESTree.FunctionDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+  110:21  error  Type assertion "as TSESTree.BlockStatement" is not allowed                                   zero-tolerance/no-type-assertion
+  114:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+    2:1   error  Import "@typescript-eslint/types" should come before "@typescript-eslint/typescript-estree"  zero-tolerance/sort-imports
+   11:19  error  Function "<anonymous>" has 102 lines (max 15); keep functions small and focused              zero-tolerance/max-function-lines
+   12:36  error  Function "<anonymous>" has 17 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+   13:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   15:20  error  Type assertion "as TSESTree.VariableDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   16:20  error  Type assertion "as TSESTree.TSAsExpression" is not allowed                                   zero-tolerance/no-type-assertion
+   16:21  error  Type assertion "as TSESTree.VariableDeclarator" is not allowed                               zero-tolerance/no-type-assertion
+   17:23  error  Type assertion "as TSESTree.TSTypeReference" is not allowed                                  zero-tolerance/no-type-assertion
+   21:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   23:20  error  Type assertion "as TSESTree.VariableDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   24:20  error  Type assertion "as TSESTree.TSAsExpression" is not allowed                                   zero-tolerance/no-type-assertion
+   24:21  error  Type assertion "as TSESTree.VariableDeclarator" is not allowed                               zero-tolerance/no-type-assertion
+   25:23  error  Type assertion "as TSESTree.TSTypeReference" is not allowed                                  zero-tolerance/no-type-assertion
+   30:32  error  Function "<anonymous>" has 17 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+   31:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   33:20  error  Type assertion "as TSESTree.VariableDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   34:20  error  Type assertion "as TSESTree.TSAsExpression" is not allowed                                   zero-tolerance/no-type-assertion
+   34:21  error  Type assertion "as TSESTree.VariableDeclarator" is not allowed                               zero-tolerance/no-type-assertion
+   35:23  error  Type assertion "as TSESTree.TSTypeReference" is not allowed                                  zero-tolerance/no-type-assertion
+   39:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   41:20  error  Type assertion "as TSESTree.VariableDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   42:20  error  Type assertion "as TSESTree.TSAsExpression" is not allowed                                   zero-tolerance/no-type-assertion
+   42:21  error  Type assertion "as TSESTree.VariableDeclarator" is not allowed                               zero-tolerance/no-type-assertion
+   43:23  error  Type assertion "as TSESTree.TSTypeReference" is not allowed                                  zero-tolerance/no-type-assertion
+   48:45  error  Function "<anonymous>" has 22 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+   49:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   51:21  error  Type assertion "as TSESTree.TSTypeAliasDeclaration" is not allowed                           zero-tolerance/no-type-assertion
+   52:27  error  Type assertion "as TSESTree.TSTypeLiteral" is not allowed                                    zero-tolerance/no-type-assertion
+   56:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   58:21  error  Type assertion "as TSESTree.TSTypeAliasDeclaration" is not allowed                           zero-tolerance/no-type-assertion
+   59:27  error  Type assertion "as TSESTree.TSTypeLiteral" is not allowed                                    zero-tolerance/no-type-assertion
+   63:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   65:21  error  Type assertion "as TSESTree.TSTypeAliasDeclaration" is not allowed                           zero-tolerance/no-type-assertion
+   66:27  error  Type assertion "as TSESTree.TSTypeLiteral" is not allowed                                    zero-tolerance/no-type-assertion
+   71:34  error  Function "<anonymous>" has 21 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+   72:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   74:20  error  Type assertion "as TSESTree.TSAsExpression" is not allowed                                   zero-tolerance/no-type-assertion
+   74:21  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+   79:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   81:20  error  Type assertion "as TSESTree.TSAsExpression" is not allowed                                   zero-tolerance/no-type-assertion
+   81:21  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+   86:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   88:21  error  Type assertion "as TSESTree.ExpressionStatement" is not allowed                              zero-tolerance/no-type-assertion
+   93:36  error  Function "<anonymous>" has 19 lines (max 15); keep functions small and focused               zero-tolerance/max-function-lines
+   94:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+   96:20  error  Type assertion "as TSESTree.VariableDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+   97:20  error  Type assertion "as TSESTree.TSAsExpression" is not allowed                                   zero-tolerance/no-type-assertion
+   97:21  error  Type assertion "as TSESTree.VariableDeclarator" is not allowed                               zero-tolerance/no-type-assertion
+  101:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+  103:20  error  Type assertion "as TSESTree.VariableDeclaration" is not allowed                              zero-tolerance/no-type-assertion
+  104:20  error  Type assertion "as TSESTree.TSAsExpression" is not allowed                                   zero-tolerance/no-type-assertion
+  104:21  error  Type assertion "as TSESTree.VariableDeclarator" is not allowed                               zero-tolerance/no-type-assertion
+  108:8   error  Test description should start with "should"                                                  zero-tolerance/require-test-description-style
+✖ 317 problems (317 errors, 0 warnings)
+  141 errors and 0 warnings potentially fixable with the `--fix` option.
