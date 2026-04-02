@@ -9,7 +9,7 @@ import {
 import { isIdentifier, isCallExpression } from "../guards/nodes";
 import { asIdentifier } from "./helpers";
 
-const keys: Record<string, readonly string[]> = visitorKeys;
+const keys = visitorKeys;
 
 function testFindDescendant(): void {
   it("should find first matching descendant", () => {

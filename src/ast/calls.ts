@@ -6,7 +6,7 @@ import { isIdentifier, isMemberExpression, isStringLiteral } from "../guards/nod
  * @param callee - The callee expression to extract the name path from.
  * @returns The dotted name string, or null if it cannot be determined.
  */
-export function getCalleeNamePath(callee: Readonly<TSESTree.LeftHandSideExpression>): string | null {
+export function getCalleeNamePath(callee: Readonly<TSESTree.Node>): string | null {
   if (isIdentifier(callee)) return callee.name;
   if (!isMemberExpression(callee) || callee.computed) return null;
   const obj = callee.object;

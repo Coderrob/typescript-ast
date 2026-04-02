@@ -9,7 +9,7 @@ import { TSESTree } from "@typescript-eslint/types";
  */
 export function findDescendant(
   node: Readonly<TSESTree.Node>,
-  visitorKeys: Readonly<Record<string, readonly string[]>>,
+  visitorKeys: Readonly<Record<string, readonly string[] | undefined>>,
   predicate: (node: Readonly<TSESTree.Node>) => boolean
 ): TSESTree.Node | null {
   for (const child of getChildNodes(node, visitorKeys)) {
@@ -28,7 +28,7 @@ export function findDescendant(
  */
 function getChildNodes(
   node: Readonly<TSESTree.Node>,
-  visitorKeys: Readonly<Record<string, readonly string[]>>
+  visitorKeys: Readonly<Record<string, readonly string[] | undefined>>
 ): TSESTree.Node[] {
   return getChildNodesForKeys(node, visitorKeys[node.type] ?? []);
 }
@@ -70,7 +70,7 @@ function getChildrenForKey(node: Readonly<TSESTree.Node>, key: string): TSESTree
  */
 export function hasMatchingDescendant(
   node: Readonly<TSESTree.Node>,
-  visitorKeys: Readonly<Record<string, readonly string[]>>,
+  visitorKeys: Readonly<Record<string, readonly string[] | undefined>>,
   predicate: (node: Readonly<TSESTree.Node>) => boolean
 ): boolean {
   for (const child of getChildNodes(node, visitorKeys)) {
@@ -89,7 +89,7 @@ export function hasMatchingDescendant(
  */
 export function hasMatchingDescendantUntil(
   node: Readonly<TSESTree.Node>,
-  visitorKeys: Readonly<Record<string, readonly string[]>>,
+  visitorKeys: Readonly<Record<string, readonly string[] | undefined>>,
   predicate: (node: Readonly<TSESTree.Node>) => boolean,
   stopPredicate: (node: Readonly<TSESTree.Node>) => boolean
 ): boolean {
