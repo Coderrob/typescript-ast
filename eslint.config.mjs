@@ -1,3 +1,4 @@
+import zeroTolerance from "@coderrob/eslint-plugin-zero-tolerance";
 import tsPlugin from "@typescript-eslint/eslint-plugin";
 import tsParser from "@typescript-eslint/parser";
 
@@ -16,5 +17,9 @@ export default [
     rules: {
       ...tsPlugin.configs["recommended"].rules,
     },
+  },
+  {
+    files: ["src/**/*.ts"],
+    ...zeroTolerance.configs.strict,
   },
 ];

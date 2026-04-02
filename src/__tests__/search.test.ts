@@ -2,31 +2,31 @@ import { parse } from "@typescript-eslint/typescript-estree";
 import { visitorKeys } from "@typescript-eslint/visitor-keys";
 import { TSESTree } from "@typescript-eslint/types";
 import {
-  someDescendant,
+  hasMatchingDescendant,
   findDescendant,
-  someDescendantUntil,
+  hasMatchingDescendantUntil,
 } from "../ast/search";
 import { isIdentifier, isCallExpression } from "../guards/nodes";
 
 const keys = visitorKeys as Record<string, readonly string[]>;
 
 describe("search", () => {
-  describe("someDescendant", () => {
+  describe("hasMatchingDescendant", () => {
     it("returns true when a descendant matches", () => {
       const ast = parse("foo()", { jsx: false });
-      const result = someDescendant(ast, keys, isCallExpression);
+      const result = hasMatchingDescendant(ast, keys, isCallExpression);
       expect(result).toBe(true);
     });
 
     it("returns false when no descendant matches", () => {
       const ast = parse("x", { jsx: false });
-      const result = someDescendant(ast, keys, isCallExpression);
+      const result = hasMatchingDescendant(ast, keys, isCallExpression);
       expect(result).toBe(false);
     });
 
     it("finds identifier in nested structure", () => {
       const ast = parse("foo.bar()", { jsx: false });
-      const result = someDescendant(ast, keys, isIdentifier);
+      const result = hasMatchingDescendant(ast, keys, isIdentifier);
       expect(result).toBe(true);
     });
   });
@@ -53,10 +53,10 @@ describe("search", () => {
     });
   });
 
-  describe("someDescendantUntil", () => {
+  describe("hasMatchingDescendantUntil", () => {
     it("returns true when a descendant matches before stop", () => {
       const ast = parse("foo()", { jsx: false });
-      const result = someDescendantUntil(
+      const result = hasMatchingDescendantUntil(
         ast,
         keys,
         isCallExpression,
@@ -67,7 +67,7 @@ describe("search", () => {
 
     it("returns false when stop predicate prevents traversal", () => {
       const ast = parse("foo()", { jsx: false });
-      const result = someDescendantUntil(
+      const result = hasMatchingDescendantUntil(
         ast,
         keys,
         isCallExpression,
@@ -78,7 +78,7 @@ describe("search", () => {
 
     it("returns false when no descendant matches", () => {
       const ast = parse("x", { jsx: false });
-      const result = someDescendantUntil(
+      const result = hasMatchingDescendantUntil(
         ast,
         keys,
         isCallExpression,
