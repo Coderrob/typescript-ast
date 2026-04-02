@@ -1,5 +1,5 @@
-import { parse } from "@typescript-eslint/typescript-estree";
 import { TSESTree } from "@typescript-eslint/types";
+import { parse } from "@typescript-eslint/typescript-estree";
 import {
   isIdentifier,
   isMemberExpression,
@@ -18,266 +18,279 @@ import {
   isTSSatisfiesExpression,
   isThisExpression,
 } from "../guards/nodes";
+import {
+  asBlockStatement,
+  asClassDeclaration,
+  asExpressionStatement,
+  asFunctionDeclaration,
+  asFunctionExpression,
+  asIdentifier,
+  asMethodDefinition,
+  asTSAsExpression,
+  asTSTypeAliasDeclaration,
+  asTSTypeLiteral,
+  asVariableDeclaration,
+} from "./helpers";
 
-describe("guards", () => {
-  describe("isIdentifier", () => {
-    it("returns true for Identifier nodes", () => {
-      const ast = parse("x", { jsx: false });
-      const node = (ast.body[0] as TSESTree.ExpressionStatement).expression;
-      expect(isIdentifier(node)).toBe(true);
-    });
-    it("returns false for non-Identifier", () => {
-      const ast = parse("1", { jsx: false });
-      const node = (ast.body[0] as TSESTree.ExpressionStatement).expression;
-      expect(isIdentifier(node)).toBe(false);
-    });
-    it("returns false for null", () => {
-      expect(isIdentifier(null)).toBe(false);
-    });
-    it("returns false for undefined", () => {
-      expect(isIdentifier(undefined)).toBe(false);
-    });
-  });
+function parseClassCtor(code: string): TSESTree.FunctionExpression {
+  const cls = asClassDeclaration(parse(code, { jsx: false }).body[0]);
+  return asFunctionExpression(asMethodDefinition(cls.body.body[0]).value);
+}
 
-  describe("isMemberExpression", () => {
-    it("returns true for MemberExpression nodes", () => {
-      const ast = parse("foo.bar", { jsx: false });
-      const node = (ast.body[0] as TSESTree.ExpressionStatement).expression;
-      expect(isMemberExpression(node)).toBe(true);
-    });
-    it("returns false for Identifier", () => {
-      const ast = parse("x", { jsx: false });
-      const node = (ast.body[0] as TSESTree.ExpressionStatement).expression;
-      expect(isMemberExpression(node)).toBe(false);
-    });
-    it("returns false for null", () => {
-      expect(isMemberExpression(null)).toBe(false);
-    });
-  });
+function parseExpr(code: string): TSESTree.Expression {
+  return asExpressionStatement(parse(code, { jsx: false }).body[0]).expression;
+}
 
-  describe("isCallExpression", () => {
-    it("returns true for CallExpression nodes", () => {
-      const ast = parse("foo()", { jsx: false });
-      const node = (ast.body[0] as TSESTree.ExpressionStatement).expression;
-      expect(isCallExpression(node)).toBe(true);
-    });
-    it("returns false for Identifier", () => {
-      const ast = parse("x", { jsx: false });
-      const node = (ast.body[0] as TSESTree.ExpressionStatement).expression;
-      expect(isCallExpression(node)).toBe(false);
-    });
-    it("returns false for null", () => {
-      expect(isCallExpression(null)).toBe(false);
-    });
-  });
+function parseFn(code: string): TSESTree.FunctionDeclaration {
+  return asFunctionDeclaration(parse(code, { jsx: false }).body[0]);
+}
 
-  describe("isLiteral", () => {
-    it("returns true for numeric Literal", () => {
-      const ast = parse("1", { jsx: false });
-      const node = (ast.body[0] as TSESTree.ExpressionStatement).expression;
-      expect(isLiteral(node)).toBe(true);
-    });
-    it("returns true for string Literal", () => {
-      const ast = parse('"hello"', { jsx: false });
-      const node = (ast.body[0] as TSESTree.ExpressionStatement).expression;
-      expect(isLiteral(node)).toBe(true);
-    });
-    it("returns false for Identifier", () => {
-      const ast = parse("x", { jsx: false });
-      const node = (ast.body[0] as TSESTree.ExpressionStatement).expression;
-      expect(isLiteral(node)).toBe(false);
-    });
-    it("returns false for null", () => {
-      expect(isLiteral(null)).toBe(false);
-    });
-  });
+function parseTSAsExpr(code: string): TSESTree.TSAsExpression {
+  const decl = asVariableDeclaration(parse(code, { jsx: false }).body[0]);
+  return asTSAsExpression(decl.declarations[0].init);
+}
 
-  describe("isStringLiteral", () => {
-    it("returns true for string Literal", () => {
-      const ast = parse('"hello"', { jsx: false });
-      const node = (ast.body[0] as TSESTree.ExpressionStatement).expression;
-      expect(isStringLiteral(node)).toBe(true);
-    });
-    it("returns false for numeric Literal", () => {
-      const ast = parse("42", { jsx: false });
-      const node = (ast.body[0] as TSESTree.ExpressionStatement).expression;
-      expect(isStringLiteral(node)).toBe(false);
-    });
-    it("returns false for null", () => {
-      expect(isStringLiteral(null)).toBe(false);
-    });
-  });
+function parseTypeAlias(code: string): TSESTree.TSTypeAliasDeclaration {
+  return asTSTypeAliasDeclaration(parse(code, { jsx: false }).body[0]);
+}
 
-  describe("isBlockStatement", () => {
-    it("returns true for BlockStatement nodes", () => {
-      const ast = parse("function f() {}", { jsx: false });
-      const fn = ast.body[0] as TSESTree.FunctionDeclaration;
-      expect(isBlockStatement(fn.body)).toBe(true);
-    });
-    it("returns false for Identifier", () => {
-      const ast = parse("x", { jsx: false });
-      const node = (ast.body[0] as TSESTree.ExpressionStatement).expression;
-      expect(isBlockStatement(node)).toBe(false);
-    });
-    it("returns false for null", () => {
-      expect(isBlockStatement(null)).toBe(false);
-    });
-  });
+function parseVarInit(code: string): TSESTree.Expression | null {
+  const decl = asVariableDeclaration(parse(code, { jsx: false }).body[0]);
+  return decl.declarations[0].init;
+}
 
-  describe("isReturnStatement", () => {
-    it("returns true for ReturnStatement nodes", () => {
-      const ast = parse("function f() { return 1; }", { jsx: false });
-      const fn = ast.body[0] as TSESTree.FunctionDeclaration;
-      const stmt = (fn.body as TSESTree.BlockStatement).body[0];
-      expect(isReturnStatement(stmt)).toBe(true);
-    });
-    it("returns false for ExpressionStatement", () => {
-      const ast = parse("x;", { jsx: false });
-      const node = ast.body[0];
-      expect(isReturnStatement(node)).toBe(false);
-    });
-    it("returns false for null", () => {
-      expect(isReturnStatement(null)).toBe(false);
-    });
-  });
+function testGuards(): void {
+  testGuardsBasic();
+  testGuardsBlock();
+  testGuardsTS();
+}
 
-  describe("isFunctionLike", () => {
-    it("returns true for FunctionDeclaration", () => {
-      const ast = parse("function f() {}", { jsx: false });
-      expect(isFunctionLike(ast.body[0])).toBe(true);
-    });
-    it("returns true for FunctionExpression", () => {
-      const ast = parse("const f = function() {};", { jsx: false });
-      const decl = ast.body[0] as TSESTree.VariableDeclaration;
-      const init = (decl.declarations[0] as TSESTree.VariableDeclarator).init;
-      expect(isFunctionLike(init)).toBe(true);
-    });
-    it("returns true for ArrowFunctionExpression", () => {
-      const ast = parse("const f = () => {};", { jsx: false });
-      const decl = ast.body[0] as TSESTree.VariableDeclaration;
-      const init = (decl.declarations[0] as TSESTree.VariableDeclarator).init;
-      expect(isFunctionLike(init)).toBe(true);
-    });
-    it("returns false for Identifier", () => {
-      const ast = parse("x", { jsx: false });
-      const node = (ast.body[0] as TSESTree.ExpressionStatement).expression;
-      expect(isFunctionLike(node)).toBe(false);
-    });
-    it("returns false for null", () => {
-      expect(isFunctionLike(null)).toBe(false);
-    });
-  });
+function testGuardsBasic(): void {
+  describe("isIdentifier", testIsIdentifier);
+  describe("isMemberExpression", testIsMemberExpression);
+  describe("isCallExpression", testIsCallExpression);
+  describe("isLiteral", testIsLiteral);
+  describe("isStringLiteral", testIsStringLiteral);
+}
 
-  describe("isTSParameterProperty", () => {
-    it("returns true for TSParameterProperty", () => {
-      const ast = parse("class C { constructor(private x: string) {} }", { jsx: false });
-      const cls = ast.body[0] as TSESTree.ClassDeclaration;
-      const ctor = cls.body.body[0] as TSESTree.MethodDefinition;
-      const fn = ctor.value as TSESTree.FunctionExpression;
-      expect(isTSParameterProperty(fn.params[0])).toBe(true);
-    });
-    it("returns false for regular parameter", () => {
-      const ast = parse("function f(x: string) {}", { jsx: false });
-      const fn = ast.body[0] as TSESTree.FunctionDeclaration;
-      expect(isTSParameterProperty(fn.params[0])).toBe(false);
-    });
-    it("returns false for null", () => {
-      expect(isTSParameterProperty(null)).toBe(false);
-    });
-  });
+function testGuardsBlock(): void {
+  describe("isBlockStatement", testIsBlockStatement);
+  describe("isReturnStatement", testIsReturnStatement);
+  describe("isFunctionLike", testIsFunctionLike);
+  describe("isTSParameterProperty", testIsTSParameterProperty);
+  describe("isTSTypeAnnotation", testIsTSTypeAnnotation);
+}
 
-  describe("isTSTypeAnnotation", () => {
-    it("returns true for TSTypeAnnotation", () => {
-      const ast = parse("function f(x: string) {}", { jsx: false });
-      const fn = ast.body[0] as TSESTree.FunctionDeclaration;
-      const param = fn.params[0] as TSESTree.Identifier;
-      expect(isTSTypeAnnotation(param.typeAnnotation)).toBe(true);
-    });
-    it("returns false for null", () => {
-      expect(isTSTypeAnnotation(null)).toBe(false);
-    });
-  });
+function testGuardsTS(): void {
+  describe("isTSTypeReference", testIsTSTypeReference);
+  describe("isTSTypeLiteral", testIsTSTypeLiteral);
+  describe("isTSPropertySignature", testIsTSPropertySignature);
+  describe("isTSAsExpression", testIsTSAsExpression);
+  describe("isTSSatisfiesExpression", testIsTSSatisfiesExpression);
+  describe("isThisExpression", testIsThisExpression);
+}
 
-  describe("isTSTypeReference", () => {
-    it("returns true for TSTypeReference", () => {
-      const ast = parse("const x = null as Foo;", { jsx: false });
-      const stmt = ast.body[0] as TSESTree.VariableDeclaration;
-      const init = (stmt.declarations[0] as TSESTree.VariableDeclarator).init as TSESTree.TSAsExpression;
-      expect(isTSTypeReference(init.typeAnnotation)).toBe(true);
-    });
-    it("returns false for null", () => {
-      expect(isTSTypeReference(null)).toBe(false);
-    });
+function testIsBlockStatement(): void {
+  it("should return true for BlockStatement nodes", () => {
+    expect(isBlockStatement(parseFn("function f() {}").body)).toBe(true);
   });
+  it("should return false for Identifier", () => {
+    expect(isBlockStatement(parseExpr("x"))).toBe(false);
+  });
+  it("should return false for null", () => {
+    expect(isBlockStatement(null)).toBe(false);
+  });
+}
 
-  describe("isTSTypeLiteral", () => {
-    it("returns true for TSTypeLiteral", () => {
-      const ast = parse("type X = { a: string };", { jsx: false });
-      const alias = ast.body[0] as TSESTree.TSTypeAliasDeclaration;
-      expect(isTSTypeLiteral(alias.typeAnnotation)).toBe(true);
-    });
-    it("returns false for null", () => {
-      expect(isTSTypeLiteral(null)).toBe(false);
-    });
+function testIsCallExpression(): void {
+  it("should return true for CallExpression nodes", () => {
+    expect(isCallExpression(parseExpr("foo()"))).toBe(true);
   });
+  it("should return false for Identifier", () => {
+    expect(isCallExpression(parseExpr("x"))).toBe(false);
+  });
+  it("should return false for null", () => {
+    expect(isCallExpression(null)).toBe(false);
+  });
+}
 
-  describe("isTSPropertySignature", () => {
-    it("returns true for TSPropertySignature", () => {
-      const ast = parse("type X = { a: string };", { jsx: false });
-      const alias = ast.body[0] as TSESTree.TSTypeAliasDeclaration;
-      const typeLiteral = alias.typeAnnotation as TSESTree.TSTypeLiteral;
-      expect(isTSPropertySignature(typeLiteral.members[0])).toBe(true);
-    });
-    it("returns false for null", () => {
-      expect(isTSPropertySignature(null)).toBe(false);
-    });
-  });
+function testIsFunctionLike(): void {
+  testIsFunctionLikeFalsy();
+  testIsFunctionLikeTruthy();
+}
 
-  describe("isTSAsExpression", () => {
-    it("returns true for TSAsExpression", () => {
-      const ast = parse("x as string", { jsx: false });
-      const node = (ast.body[0] as TSESTree.ExpressionStatement).expression;
-      expect(isTSAsExpression(node)).toBe(true);
-    });
-    it("returns false for Identifier", () => {
-      const ast = parse("x", { jsx: false });
-      const node = (ast.body[0] as TSESTree.ExpressionStatement).expression;
-      expect(isTSAsExpression(node)).toBe(false);
-    });
-    it("returns false for null", () => {
-      expect(isTSAsExpression(null)).toBe(false);
-    });
+function testIsFunctionLikeFalsy(): void {
+  it("should return false for Identifier", () => {
+    expect(isFunctionLike(parseExpr("x"))).toBe(false);
   });
+  it("should return false for null", () => {
+    expect(isFunctionLike(null)).toBe(false);
+  });
+}
 
-  describe("isTSSatisfiesExpression", () => {
-    it("returns true for TSSatisfiesExpression", () => {
-      const ast = parse("x satisfies string", { jsx: false });
-      const node = (ast.body[0] as TSESTree.ExpressionStatement).expression;
-      expect(isTSSatisfiesExpression(node)).toBe(true);
-    });
-    it("returns false for Identifier", () => {
-      const ast = parse("x", { jsx: false });
-      const node = (ast.body[0] as TSESTree.ExpressionStatement).expression;
-      expect(isTSSatisfiesExpression(node)).toBe(false);
-    });
-    it("returns false for null", () => {
-      expect(isTSSatisfiesExpression(null)).toBe(false);
-    });
+function testIsFunctionLikeTruthy(): void {
+  it("should return true for FunctionDeclaration", () => {
+    expect(isFunctionLike(parse("function f() {}", { jsx: false }).body[0])).toBe(true);
   });
+  it("should return true for FunctionExpression", () => {
+    expect(isFunctionLike(parseVarInit("const f = function() {};"))).toBe(true);
+  });
+  it("should return true for ArrowFunctionExpression", () => {
+    expect(isFunctionLike(parseVarInit("const f = () => {};"))).toBe(true);
+  });
+}
 
-  describe("isThisExpression", () => {
-    it("returns true for ThisExpression", () => {
-      const ast = parse("this", { jsx: false });
-      const node = (ast.body[0] as TSESTree.ExpressionStatement).expression;
-      expect(isThisExpression(node)).toBe(true);
-    });
-    it("returns false for Identifier", () => {
-      const ast = parse("x", { jsx: false });
-      const node = (ast.body[0] as TSESTree.ExpressionStatement).expression;
-      expect(isThisExpression(node)).toBe(false);
-    });
-    it("returns false for null", () => {
-      expect(isThisExpression(null)).toBe(false);
-    });
+function testIsIdentifier(): void {
+  it("should return true for Identifier nodes", () => {
+    expect(isIdentifier(parseExpr("x"))).toBe(true);
   });
-});
+  it("should return false for non-Identifier", () => {
+    expect(isIdentifier(parseExpr("1"))).toBe(false);
+  });
+  it("should return false for null", () => {
+    expect(isIdentifier(null)).toBe(false);
+  });
+  it("should return false for undefined", () => {
+    expect(isIdentifier(undefined)).toBe(false);
+  });
+}
+
+function testIsLiteral(): void {
+  it("should return true for numeric Literal", () => {
+    expect(isLiteral(parseExpr("1"))).toBe(true);
+  });
+  it("should return true for string Literal", () => {
+    expect(isLiteral(parseExpr('"hello"'))).toBe(true);
+  });
+  it("should return false for Identifier", () => {
+    expect(isLiteral(parseExpr("x"))).toBe(false);
+  });
+  it("should return false for null", () => {
+    expect(isLiteral(null)).toBe(false);
+  });
+}
+
+function testIsMemberExpression(): void {
+  it("should return true for MemberExpression nodes", () => {
+    expect(isMemberExpression(parseExpr("foo.bar"))).toBe(true);
+  });
+  it("should return false for Identifier", () => {
+    expect(isMemberExpression(parseExpr("x"))).toBe(false);
+  });
+  it("should return false for null", () => {
+    expect(isMemberExpression(null)).toBe(false);
+  });
+}
+
+function testIsReturnStatement(): void {
+  it("should return true for ReturnStatement nodes", () => {
+    expect(isReturnStatement(asBlockStatement(parseFn("function f() { return 1; }").body).body[0])).toBe(true);
+  });
+  it("should return false for ExpressionStatement", () => {
+    expect(isReturnStatement(parse("x;", { jsx: false }).body[0])).toBe(false);
+  });
+  it("should return false for null", () => {
+    expect(isReturnStatement(null)).toBe(false);
+  });
+}
+
+function testIsStringLiteral(): void {
+  it("should return true for string Literal", () => {
+    expect(isStringLiteral(parseExpr('"hello"'))).toBe(true);
+  });
+  it("should return false for numeric Literal", () => {
+    expect(isStringLiteral(parseExpr("42"))).toBe(false);
+  });
+  it("should return false for null", () => {
+    expect(isStringLiteral(null)).toBe(false);
+  });
+}
+
+function testIsThisExpression(): void {
+  it("should return true for ThisExpression", () => {
+    expect(isThisExpression(parseExpr("this"))).toBe(true);
+  });
+  it("should return false for Identifier", () => {
+    expect(isThisExpression(parseExpr("x"))).toBe(false);
+  });
+  it("should return false for null", () => {
+    expect(isThisExpression(null)).toBe(false);
+  });
+}
+
+function testIsTSAsExpression(): void {
+  it("should return true for TSAsExpression", () => {
+    expect(isTSAsExpression(parseExpr("x as string"))).toBe(true);
+  });
+  it("should return false for Identifier", () => {
+    expect(isTSAsExpression(parseExpr("x"))).toBe(false);
+  });
+  it("should return false for null", () => {
+    expect(isTSAsExpression(null)).toBe(false);
+  });
+}
+
+function testIsTSParameterProperty(): void {
+  it("should return true for TSParameterProperty", () => {
+    const fn = parseClassCtor("class C { constructor(private x: string) {} }");
+    expect(isTSParameterProperty(fn.params[0])).toBe(true);
+  });
+  it("should return false for regular parameter", () => {
+    expect(isTSParameterProperty(parseFn("function f(x: string) {}").params[0])).toBe(false);
+  });
+  it("should return false for null", () => {
+    expect(isTSParameterProperty(null)).toBe(false);
+  });
+}
+
+function testIsTSPropertySignature(): void {
+  it("should return true for TSPropertySignature", () => {
+    const tl = asTSTypeLiteral(parseTypeAlias("type X = { a: string };").typeAnnotation);
+    expect(isTSPropertySignature(tl.members[0])).toBe(true);
+  });
+  it("should return false for null", () => {
+    expect(isTSPropertySignature(null)).toBe(false);
+  });
+}
+
+function testIsTSSatisfiesExpression(): void {
+  it("should return true for TSSatisfiesExpression", () => {
+    expect(isTSSatisfiesExpression(parseExpr("x satisfies string"))).toBe(true);
+  });
+  it("should return false for Identifier", () => {
+    expect(isTSSatisfiesExpression(parseExpr("x"))).toBe(false);
+  });
+  it("should return false for null", () => {
+    expect(isTSSatisfiesExpression(null)).toBe(false);
+  });
+}
+
+function testIsTSTypeAnnotation(): void {
+  it("should return true for TSTypeAnnotation", () => {
+    const param = asIdentifier(parseFn("function f(x: string) {}").params[0]);
+    expect(isTSTypeAnnotation(param.typeAnnotation)).toBe(true);
+  });
+  it("should return false for null", () => {
+    expect(isTSTypeAnnotation(null)).toBe(false);
+  });
+}
+
+function testIsTSTypeLiteral(): void {
+  it("should return true for TSTypeLiteral", () => {
+    expect(isTSTypeLiteral(parseTypeAlias("type X = { a: string };").typeAnnotation)).toBe(true);
+  });
+  it("should return false for null", () => {
+    expect(isTSTypeLiteral(null)).toBe(false);
+  });
+}
+
+function testIsTSTypeReference(): void {
+  it("should return true for TSTypeReference", () => {
+    expect(isTSTypeReference(parseTSAsExpr("const x = null as Foo;").typeAnnotation)).toBe(true);
+  });
+  it("should return false for null", () => {
+    expect(isTSTypeReference(null)).toBe(false);
+  });
+}
+
+describe("guards", testGuards);

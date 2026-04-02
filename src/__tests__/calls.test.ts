@@ -1,5 +1,5 @@
-import { parse } from "@typescript-eslint/typescript-estree";
 import { TSESTree } from "@typescript-eslint/types";
+import { parse } from "@typescript-eslint/typescript-estree";
 import {
   getCalleeNamePath,
   hasIdentifierCallee,
@@ -9,135 +9,108 @@ import {
   getFirstCallArgument,
   getStringLiteralCallArgument,
 } from "../ast/calls";
+import { asCallExpression, asExpressionStatement } from "./helpers";
 
 function parseCallExpr(code: string): TSESTree.CallExpression {
   const ast = parse(code, { jsx: false });
-  return (ast.body[0] as TSESTree.ExpressionStatement).expression as TSESTree.CallExpression;
+  return asCallExpression(asExpressionStatement(ast.body[0]).expression);
 }
 
-describe("calls", () => {
-  describe("getCalleeNamePath", () => {
-    it("returns name for simple identifier callee", () => {
-      const call = parseCallExpr("foo()");
-      expect(getCalleeNamePath(call.callee as TSESTree.LeftHandSideExpression)).toBe("foo");
-    });
+function testCalls(): void {
+  describe("getCalleeNamePath", testGetCalleeNamePath);
+  describe("hasIdentifierCallee", testHasIdentifierCallee);
+  describe("hasMemberCallee", testHasMemberCallee);
+  describe("isNamedCall", testIsNamedCall);
+  describe("isNamedMemberCall", testIsNamedMemberCall);
+  describe("getFirstCallArgument", testGetFirstCallArgument);
+  describe("getStringLiteralCallArgument", testGetStringLiteralCallArgument);
+}
 
-    it("returns dotted path for member expression callee", () => {
-      const call = parseCallExpr("foo.bar()");
-      expect(getCalleeNamePath(call.callee as TSESTree.LeftHandSideExpression)).toBe("foo.bar");
-    });
-
-    it("returns deep dotted path", () => {
-      const call = parseCallExpr("a.b.c()");
-      expect(getCalleeNamePath(call.callee as TSESTree.LeftHandSideExpression)).toBe("a.b.c");
-    });
-
-    it("returns null for computed member expression", () => {
-      const call = parseCallExpr("foo[bar]()");
-      expect(getCalleeNamePath(call.callee as TSESTree.LeftHandSideExpression)).toBeNull();
-    });
+function testGetCalleeNamePath(): void {
+  it("should return name for simple identifier callee", () => {
+    expect(getCalleeNamePath(parseCallExpr("foo()").callee)).toBe("foo");
   });
-
-  describe("hasIdentifierCallee", () => {
-    it("returns true when callee matches name", () => {
-      const call = parseCallExpr("foo()");
-      expect(hasIdentifierCallee(call, "foo")).toBe(true);
-    });
-
-    it("returns false when callee name differs", () => {
-      const call = parseCallExpr("foo()");
-      expect(hasIdentifierCallee(call, "bar")).toBe(false);
-    });
-
-    it("returns false for member expression callee", () => {
-      const call = parseCallExpr("foo.bar()");
-      expect(hasIdentifierCallee(call, "foo")).toBe(false);
-    });
+  it("should return dotted path for member expression callee", () => {
+    expect(getCalleeNamePath(parseCallExpr("foo.bar()").callee)).toBe("foo.bar");
   });
-
-  describe("hasMemberCallee", () => {
-    it("returns true for member expression callee", () => {
-      const call = parseCallExpr("foo.bar()");
-      expect(hasMemberCallee(call)).toBe(true);
-    });
-
-    it("returns false for identifier callee", () => {
-      const call = parseCallExpr("foo()");
-      expect(hasMemberCallee(call)).toBe(false);
-    });
+  it("should return deep dotted path", () => {
+    expect(getCalleeNamePath(parseCallExpr("a.b.c()").callee)).toBe("a.b.c");
   });
-
-  describe("isNamedCall", () => {
-    it("returns true for matching call name", () => {
-      const call = parseCallExpr("foo()");
-      expect(isNamedCall(call, "foo")).toBe(true);
-    });
-
-    it("returns true for dotted call name", () => {
-      const call = parseCallExpr("foo.bar()");
-      expect(isNamedCall(call, "foo.bar")).toBe(true);
-    });
-
-    it("returns false for non-matching name", () => {
-      const call = parseCallExpr("foo()");
-      expect(isNamedCall(call, "bar")).toBe(false);
-    });
+  it("should return null for computed member expression", () => {
+    expect(getCalleeNamePath(parseCallExpr("foo[bar]()").callee)).toBeNull();
   });
+}
 
-  describe("isNamedMemberCall", () => {
-    it("returns true for matching object.method", () => {
-      const call = parseCallExpr("obj.method()");
-      expect(isNamedMemberCall(call, "obj", "method")).toBe(true);
-    });
-
-    it("returns false for wrong method", () => {
-      const call = parseCallExpr("obj.method()");
-      expect(isNamedMemberCall(call, "obj", "other")).toBe(false);
-    });
-
-    it("returns false for wrong object", () => {
-      const call = parseCallExpr("obj.method()");
-      expect(isNamedMemberCall(call, "other", "method")).toBe(false);
-    });
-
-    it("returns false for identifier callee", () => {
-      const call = parseCallExpr("foo()");
-      expect(isNamedMemberCall(call, "foo", "bar")).toBe(false);
-    });
+function testGetFirstCallArgument(): void {
+  it("should return first argument", () => {
+    expect(getFirstCallArgument(parseCallExpr('foo("a", "b")'))).not.toBeNull();
   });
-
-  describe("getFirstCallArgument", () => {
-    it("returns first argument", () => {
-      const call = parseCallExpr('foo("a", "b")');
-      const arg = getFirstCallArgument(call);
-      expect(arg).not.toBeNull();
-    });
-
-    it("returns null when no arguments", () => {
-      const call = parseCallExpr("foo()");
-      expect(getFirstCallArgument(call)).toBeNull();
-    });
+  it("should return null when no arguments", () => {
+    expect(getFirstCallArgument(parseCallExpr("foo()"))).toBeNull();
   });
+}
 
-  describe("getStringLiteralCallArgument", () => {
-    it("returns string value at index", () => {
-      const call = parseCallExpr('foo("hello")');
-      expect(getStringLiteralCallArgument(call, 0)).toBe("hello");
-    });
-
-    it("returns second string argument", () => {
-      const call = parseCallExpr('foo("a", "b")');
-      expect(getStringLiteralCallArgument(call, 1)).toBe("b");
-    });
-
-    it("returns null for numeric argument", () => {
-      const call = parseCallExpr("foo(42)");
-      expect(getStringLiteralCallArgument(call, 0)).toBeNull();
-    });
-
-    it("returns null when index out of bounds", () => {
-      const call = parseCallExpr("foo()");
-      expect(getStringLiteralCallArgument(call, 0)).toBeNull();
-    });
+function testGetStringLiteralCallArgument(): void {
+  it("should return string value at index", () => {
+    expect(getStringLiteralCallArgument(parseCallExpr('foo("hello")'), 0)).toBe("hello");
   });
-});
+  it("should return second string argument", () => {
+    expect(getStringLiteralCallArgument(parseCallExpr('foo("a", "b")'), 1)).toBe("b");
+  });
+  it("should return null for numeric argument", () => {
+    expect(getStringLiteralCallArgument(parseCallExpr("foo(42)"), 0)).toBeNull();
+  });
+  it("should return null when index out of bounds", () => {
+    expect(getStringLiteralCallArgument(parseCallExpr("foo()"), 0)).toBeNull();
+  });
+}
+
+function testHasIdentifierCallee(): void {
+  it("should return true when callee matches name", () => {
+    expect(hasIdentifierCallee(parseCallExpr("foo()"), "foo")).toBe(true);
+  });
+  it("should return false when callee name differs", () => {
+    expect(hasIdentifierCallee(parseCallExpr("foo()"), "bar")).toBe(false);
+  });
+  it("should return false for member expression callee", () => {
+    expect(hasIdentifierCallee(parseCallExpr("foo.bar()"), "foo")).toBe(false);
+  });
+}
+
+function testHasMemberCallee(): void {
+  it("should return true for member expression callee", () => {
+    expect(hasMemberCallee(parseCallExpr("foo.bar()"))).toBe(true);
+  });
+  it("should return false for identifier callee", () => {
+    expect(hasMemberCallee(parseCallExpr("foo()"))).toBe(false);
+  });
+}
+
+function testIsNamedCall(): void {
+  it("should return true for matching call name", () => {
+    expect(isNamedCall(parseCallExpr("foo()"), "foo")).toBe(true);
+  });
+  it("should return true for dotted call name", () => {
+    expect(isNamedCall(parseCallExpr("foo.bar()"), "foo.bar")).toBe(true);
+  });
+  it("should return false for non-matching name", () => {
+    expect(isNamedCall(parseCallExpr("foo()"), "bar")).toBe(false);
+  });
+}
+
+function testIsNamedMemberCall(): void {
+  it("should return true for matching object.method", () => {
+    expect(isNamedMemberCall(parseCallExpr("obj.method()"), "obj", "method")).toBe(true);
+  });
+  it("should return false for wrong method", () => {
+    expect(isNamedMemberCall(parseCallExpr("obj.method()"), "obj", "other")).toBe(false);
+  });
+  it("should return false for wrong object", () => {
+    expect(isNamedMemberCall(parseCallExpr("obj.method()"), "other", "method")).toBe(false);
+  });
+  it("should return false for identifier callee", () => {
+    expect(isNamedMemberCall(parseCallExpr("foo()"), "foo", "bar")).toBe(false);
+  });
+}
+
+describe("calls", testCalls);
