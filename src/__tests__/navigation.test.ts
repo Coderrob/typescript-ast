@@ -7,7 +7,7 @@ import {
   getParentBlockStatement,
   getNextStatementInBlock,
 } from "../ast/navigation";
-import { isBlockStatement, isFunctionLike } from "../guards/nodes";
+import { isFunctionLike } from "../guards/nodes";
 
 function attachParents(ast: TSESTree.Program): void {
   simpleTraverse(
