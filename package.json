@@ -31,7 +31,7 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "@coderrob/eslint-plugin-zero-tolerance": "^1.2.0",
+    "@coderrob/eslint-plugin-zero-tolerance": "^1.2.2",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@typescript-eslint/typescript-estree": "^8.0.0",
