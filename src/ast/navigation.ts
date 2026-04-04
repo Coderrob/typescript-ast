@@ -1,5 +1,5 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/types";
-import { isFunctionLike, isBlockStatement } from "../guards/nodes";
+import { isBlockStatement, isFunctionLike } from "../guards/nodes";
 
 /**
  * Walk up the parent chain to find the first ancestor matching the predicate.
@@ -7,14 +7,26 @@ import { isFunctionLike, isBlockStatement } from "../guards/nodes";
  * @param predicate - The predicate to match ancestors against.
  * @returns The first matching ancestor, or null if none found.
  */
+export function findAncestor<T extends TSESTree.Node>(
+  node: Readonly<TSESTree.Node> | null | undefined,
+  predicate: (node: Readonly<TSESTree.Node>) => node is T
+): T | null;
+export function findAncestor(
+  node: Readonly<TSESTree.Node> | null | undefined,
+  predicate: (node: Readonly<TSESTree.Node>) => boolean
+): TSESTree.Node | null;
 export function findAncestor(
   node: Readonly<TSESTree.Node> | null | undefined,
   predicate: (node: Readonly<TSESTree.Node>) => boolean
 ): TSESTree.Node | null {
-  const parent = node ? getNodeParent(node) : undefined;
-  if (!parent) return null;
-  if (predicate(parent)) return parent;
-  return findAncestor(parent, predicate);
+  let currentNode = node ? getNodeParent(node) : undefined;
+  while (currentNode !== undefined) {
+    if (predicate(currentNode)) {
+      return currentNode;
+    }
+    currentNode = getNodeParent(currentNode);
+  }
+  return null;
 }
 
 /**
@@ -25,10 +37,14 @@ export function findAncestor(
 export function findEnclosingFunction(
   node: Readonly<TSESTree.Node> | null | undefined
 ): TSESTree.FunctionDeclaration | TSESTree.FunctionExpression | TSESTree.ArrowFunctionExpression | TSESTree.TSDeclareFunction | null {
-  const parent = node ? getNodeParent(node) : undefined;
-  if (!parent) return null;
-  if (isFunctionLike(parent)) return parent;
-  return findEnclosingFunction(parent);
+  let currentNode = node ? getNodeParent(node) : undefined;
+  while (currentNode !== undefined) {
+    if (isFunctionLike(currentNode)) {
+      return currentNode;
+    }
+    currentNode = getNodeParent(currentNode);
+  }
+  return null;
 }
 
 /**
@@ -41,10 +57,8 @@ export function getNextStatementInBlock(
   block: Readonly<TSESTree.BlockStatement>,
   node: Readonly<TSESTree.Statement>
 ): TSESTree.Statement | null {
-  for (const [i, stmt] of block.body.entries()) {
-    if (stmt === node) return block.body[i + 1] ?? null;
-  }
-  return null;
+  const index = block.body.indexOf(node);
+  return index === -1 ? null : block.body[index + 1] ?? null;
 }
 
 /**
@@ -54,8 +68,7 @@ export function getNextStatementInBlock(
  */
 export function getNodeParent(node: Readonly<TSESTree.Node>): TSESTree.Node | undefined {
   const parent: unknown = Reflect.get(node, "parent");
-  if (isAstNode(parent)) return parent;
-  return undefined;
+  return isAstNode(parent) ? parent : undefined;
 }
 
 /**
@@ -66,36 +79,70 @@ export function getNodeParent(node: Readonly<TSESTree.Node>): TSESTree.Node | un
 export function getParentBlockStatement(
   node: Readonly<TSESTree.Node> | null | undefined
 ): TSESTree.BlockStatement | null {
-  const parent = node ? getNodeParent(node) : undefined;
-  if (!parent) return null;
-  if (isBlockStatement(parent)) return parent;
-  return getParentBlockStatement(parent);
+  let currentNode = node ? getNodeParent(node) : undefined;
+  while (currentNode !== undefined) {
+    if (isBlockStatement(currentNode)) {
+      return currentNode;
+    }
+    currentNode = getNodeParent(currentNode);
+  }
+  return null;
 }
 
 /**
- * Check if a value is an AST node.
- * @param value - The value to check.
- * @returns True if the value has a type property characteristic of AST nodes.
+ * Check if a node or ancestor array is inside a boundary defined by stopTypes and matchTypes.
+ * @param node - The starting node or ancestor array.
+ * @param stopTypes - Boundary types that stop traversal, or match types for ancestor-array mode.
+ * @param matchTypes - Boundary types that count as a match, or stop types for ancestor-array mode.
+ * @returns True if a match boundary is reached before a stop boundary.
  */
-function isAstNode(value: unknown): value is TSESTree.Node {
-  return typeof value === "object" && value !== null && "type" in value;
-}
-
-/**
- * Check if a node is inside a boundary defined by stopTypes where matchTypes are found.
- * @param node - The starting node.
- * @param stopTypes - AST node types that halt the upward traversal.
- * @param matchTypes - AST node types that indicate a positive match.
- * @returns True if a matchType ancestor is found before a stopType ancestor.
- */
+export function isInsideBoundary(
+  ancestors: ReadonlyArray<TSESTree.Node>,
+  matchTypes: ReadonlySet<AST_NODE_TYPES>,
+  stopTypes: ReadonlySet<AST_NODE_TYPES>
+): boolean;
 export function isInsideBoundary(
   node: Readonly<TSESTree.Node> | null | undefined,
   stopTypes: readonly AST_NODE_TYPES[],
   matchTypes: readonly AST_NODE_TYPES[]
+): boolean;
+export function isInsideBoundary(
+  nodeOrAncestors: Readonly<TSESTree.Node> | ReadonlyArray<TSESTree.Node> | null | undefined,
+  stopTypesOrMatchTypes: readonly AST_NODE_TYPES[] | ReadonlySet<AST_NODE_TYPES>,
+  matchTypesOrStopTypes: readonly AST_NODE_TYPES[] | ReadonlySet<AST_NODE_TYPES>
 ): boolean {
-  const parent = node ? getNodeParent(node) : undefined;
-  if (!parent) return false;
-  if (matchTypes.includes(parent.type)) return true;
-  if (stopTypes.includes(parent.type)) return false;
-  return isInsideBoundary(parent, stopTypes, matchTypes);
+  if (Array.isArray(nodeOrAncestors)) {
+    const ancestors = nodeOrAncestors;
+    const matchTypes = stopTypesOrMatchTypes as ReadonlySet<AST_NODE_TYPES>;
+    const stopTypes = matchTypesOrStopTypes as ReadonlySet<AST_NODE_TYPES>;
+    for (let index = ancestors.length - 1; index >= 0; index -= 1) {
+      const ancestorType = ancestors[index].type;
+      if (stopTypes.has(ancestorType)) {
+        return false;
+      }
+      if (matchTypes.has(ancestorType)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  const stopTypes = stopTypesOrMatchTypes as readonly AST_NODE_TYPES[];
+  const matchTypes = matchTypesOrStopTypes as readonly AST_NODE_TYPES[];
+  const node = nodeOrAncestors as Readonly<TSESTree.Node> | null | undefined;
+  let currentNode = node ? getNodeParent(node) : undefined;
+  while (currentNode !== undefined) {
+    if (matchTypes.includes(currentNode.type)) {
+      return true;
+    }
+    if (stopTypes.includes(currentNode.type)) {
+      return false;
+    }
+    currentNode = getNodeParent(currentNode);
+  }
+  return false;
+}
+
+function isAstNode(value: unknown): value is TSESTree.Node {
+  return typeof value === "object" && value !== null && "type" in value;
 }

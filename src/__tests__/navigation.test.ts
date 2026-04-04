@@ -3,9 +3,9 @@ import { parse } from "@typescript-eslint/typescript-estree";
 import {
   findAncestor,
   findEnclosingFunction,
-  isInsideBoundary,
-  getParentBlockStatement,
   getNextStatementInBlock,
+  getParentBlockStatement,
+  isInsideBoundary,
 } from "../ast/navigation";
 import { isFunctionLike } from "../guards/nodes";
 import {
@@ -16,11 +16,6 @@ import {
   attachParents,
 } from "./helpers";
 
-function parseFnBodyRet(code: string): TSESTree.Statement {
-  const ast = parseProgWithParents(code);
-  return asBlockStatement(asFunctionDeclaration(ast.body[0]).body).body[0];
-}
-
 function parseProg(code: string): TSESTree.Program {
   return parse(code, { jsx: false });
 }
@@ -29,6 +24,11 @@ function parseProgWithParents(code: string): TSESTree.Program {
   const ast = parse(code, { jsx: false });
   attachParents(ast);
   return ast;
+}
+
+function parseFnBodyRet(code: string): TSESTree.Statement {
+  const ast = parseProgWithParents(code);
+  return asBlockStatement(asFunctionDeclaration(ast.body[0]).body).body[0];
 }
 
 function testFindAncestor(): void {
@@ -63,11 +63,15 @@ function testFindEnclosingFunction(): void {
 
 function testGetNextStatementInBlock(): void {
   it("should return next statement", () => {
-    const block = asBlockStatement(asFunctionDeclaration(parseProg("function f() { const x = 1; return x; }").body[0]).body);
+    const block = asBlockStatement(
+      asFunctionDeclaration(parseProg("function f() { const x = 1; return x; }").body[0]).body
+    );
     expect(getNextStatementInBlock(block, block.body[0])).toBe(block.body[1]);
   });
   it("should return null for last statement", () => {
-    const block = asBlockStatement(asFunctionDeclaration(parseProg("function f() { return 1; }").body[0]).body);
+    const block = asBlockStatement(
+      asFunctionDeclaration(parseProg("function f() { return 1; }").body[0]).body
+    );
     expect(getNextStatementInBlock(block, block.body[0])).toBeNull();
   });
   it("should return null when node not in block", () => {
@@ -101,6 +105,21 @@ function testIsInsideBoundary(): void {
   it("should return false when stopped by stopType before matchType", () => {
     const ret = parseFnBodyRet("function f() { return 1; }");
     expect(isInsideBoundary(ret, [AST_NODE_TYPES.BlockStatement], [AST_NODE_TYPES.FunctionDeclaration])).toBe(false);
+  });
+  it("should support ancestor-array boundary checks", () => {
+    const ancestors = [
+      { type: AST_NODE_TYPES.Program },
+      { type: AST_NODE_TYPES.ForStatement },
+      { type: AST_NODE_TYPES.BlockStatement },
+    ] as TSESTree.Node[];
+
+    expect(
+      isInsideBoundary(
+        ancestors,
+        new Set([AST_NODE_TYPES.ForStatement]),
+        new Set([AST_NODE_TYPES.FunctionExpression])
+      )
+    ).toBe(true);
   });
   it("should return false for null", () => {
     expect(isInsideBoundary(null, [], [AST_NODE_TYPES.Program])).toBe(false);

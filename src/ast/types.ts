@@ -1,11 +1,21 @@
 import { TSESTree } from "@typescript-eslint/types";
 import {
   isIdentifier,
-  isTSPropertySignature,
   isTSAsExpression,
+  isTSNonNullExpression,
+  isTSPropertySignature,
   isTSSatisfiesExpression,
   isTSTypeReference,
 } from "../guards/nodes";
+
+/**
+ * Get the first type argument from a type reference.
+ * @param node - The type reference to inspect.
+ * @returns The first type argument, or null.
+ */
+export function getFirstTypeArgument(node: Readonly<TSESTree.TSTypeReference>): TSESTree.TypeNode | null {
+  return node.typeArguments?.params[0] ?? null;
+}
 
 /**
  * Get the name string from a TSTypeReference node.
@@ -13,8 +23,7 @@ import {
  * @returns The type name string, or null if not an identifier.
  */
 export function getTypeReferenceName(node: Readonly<TSESTree.TSTypeReference>): string | null {
-  if (isIdentifier(node.typeName)) return node.typeName.name;
-  return null;
+  return isIdentifier(node.typeName) ? node.typeName.name : null;
 }
 
 /**
@@ -23,7 +32,7 @@ export function getTypeReferenceName(node: Readonly<TSESTree.TSTypeReference>): 
  * @returns True if all members are readonly property signatures.
  */
 export function hasAllReadonlyPropertyMembers(node: Readonly<TSESTree.TSTypeLiteral>): boolean {
-  return node.members.every(isReadonlyPropertyMember);
+  return node.members.every((member) => isTSPropertySignature(member) && !!member.readonly);
 }
 
 /**
@@ -33,6 +42,19 @@ export function hasAllReadonlyPropertyMembers(node: Readonly<TSESTree.TSTypeLite
  */
 export function hasTypeArguments(node: Readonly<TSESTree.TSTypeReference>): boolean {
   return (node.typeArguments?.params.length ?? 0) > 0;
+}
+
+/**
+ * Check whether a named type reference has at least one type argument.
+ * @param node - The type reference to inspect.
+ * @param expectedName - The expected type reference name.
+ * @returns True when the type reference matches the name and has type arguments.
+ */
+export function hasNamedTypeReferenceWithTypeArguments(
+  node: Readonly<TSESTree.TSTypeReference>,
+  expectedName: string
+): boolean {
+  return isNamedTypeReference(node, expectedName) && hasTypeArguments(node);
 }
 
 /**
@@ -49,16 +71,7 @@ export function isNamedTypeReference(
 }
 
 /**
- * Check if a type member is a readonly property signature.
- * @param member - The type element to check.
- * @returns True if the member is a readonly TSPropertySignature.
- */
-function isReadonlyPropertyMember(member: Readonly<TSESTree.TypeElement>): boolean {
-  return isTSPropertySignature(member) && !!member.readonly;
-}
-
-/**
- * Unwrap TSAsExpression or TSSatisfiesExpression to the inner expression.
+ * Unwrap TS wrapper expressions to the underlying runtime expression.
  * @param expression - The expression to unwrap.
  * @returns The innermost non-wrapping expression.
  */
@@ -66,7 +79,7 @@ export function unwrapTsExpression(
   expression: Readonly<TSESTree.Expression>
 ): TSESTree.Expression {
   let current = expression;
-  while (isTSAsExpression(current) || isTSSatisfiesExpression(current)) {
+  while (isTSAsExpression(current) || isTSNonNullExpression(current) || isTSSatisfiesExpression(current)) {
     current = current.expression;
   }
   return current;

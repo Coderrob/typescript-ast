@@ -1,11 +1,13 @@
 import { TSESTree } from "@typescript-eslint/types";
 import { parse } from "@typescript-eslint/typescript-estree";
 import {
+  getFirstTypeArgument,
   getTypeReferenceName,
-  hasTypeArguments,
   hasAllReadonlyPropertyMembers,
-  unwrapTsExpression,
+  hasNamedTypeReferenceWithTypeArguments,
+  hasTypeArguments,
   isNamedTypeReference,
+  unwrapTsExpression,
 } from "../ast/types";
 import {
   asExpressionStatement,
@@ -27,6 +29,17 @@ function parseTSAsExpr(code: string): TSESTree.TSAsExpression {
 
 function parseTypeAlias(code: string): TSESTree.TSTypeAliasDeclaration {
   return asTSTypeAliasDeclaration(parse(code, { jsx: false }).body[0]);
+}
+
+function testGetFirstTypeArgument(): void {
+  it("should return the first type argument", () => {
+    const typeRef = asTSTypeReference(parseTSAsExpr("const x = null as Foo<Bar>;").typeAnnotation);
+    expect(getFirstTypeArgument(typeRef)?.type).toBe("TSTypeReference");
+  });
+  it("should return null when no type arguments exist", () => {
+    const typeRef = asTSTypeReference(parseTSAsExpr("const x = null as Foo;").typeAnnotation);
+    expect(getFirstTypeArgument(typeRef)).toBeNull();
+  });
 }
 
 function testGetTypeReferenceName(): void {
@@ -53,6 +66,18 @@ function testHasAllReadonlyPropertyMembers(): void {
   });
 }
 
+function testHasNamedTypeReferenceWithTypeArguments(): void {
+  it("should return true for matching named references with type arguments", () => {
+    const typeRef = asTSTypeReference(parseTSAsExpr("const x = null as Foo<Bar>;").typeAnnotation);
+    expect(hasNamedTypeReferenceWithTypeArguments(typeRef, "Foo")).toBe(true);
+  });
+  it("should return false when the name differs or arguments are absent", () => {
+    const typeRef = asTSTypeReference(parseTSAsExpr("const x = null as Foo;").typeAnnotation);
+    expect(hasNamedTypeReferenceWithTypeArguments(typeRef, "Bar")).toBe(false);
+    expect(hasNamedTypeReferenceWithTypeArguments(typeRef, "Foo")).toBe(false);
+  });
+}
+
 function testHasTypeArguments(): void {
   it("should return true for TSTypeReference with type arguments", () => {
     expect(hasTypeArguments(asTSTypeReference(parseTSAsExpr("const x = null as Foo<Bar>;").typeAnnotation))).toBe(true);
@@ -74,14 +99,6 @@ function testIsNamedTypeReference(): void {
   });
 }
 
-function testTypes(): void {
-  describe("getTypeReferenceName", testGetTypeReferenceName);
-  describe("hasAllReadonlyPropertyMembers", testHasAllReadonlyPropertyMembers);
-  describe("hasTypeArguments", testHasTypeArguments);
-  describe("isNamedTypeReference", testIsNamedTypeReference);
-  describe("unwrapTsExpression", testUnwrapTsExpression);
-}
-
 function testUnwrapTsExpression(): void {
   it("should unwrap TSAsExpression", () => {
     const node = asTSAsExpression(parseExpr("x as string"));
@@ -91,10 +108,23 @@ function testUnwrapTsExpression(): void {
     const node = asTSAsExpression(parseExpr("x as unknown as string"));
     expect(unwrapTsExpression(node).type).toBe("Identifier");
   });
-  it("should return the node if not a TSAsExpression or TSSatisfiesExpression", () => {
+  it("should unwrap TSNonNullExpression wrappers", () => {
+    expect(unwrapTsExpression(parseExpr("x!")).type).toBe("Identifier");
+  });
+  it("should return the node if not a TS wrapper expression", () => {
     const node = parseExpr("x");
     expect(unwrapTsExpression(node)).toBe(node);
   });
+}
+
+function testTypes(): void {
+  describe("getFirstTypeArgument", testGetFirstTypeArgument);
+  describe("getTypeReferenceName", testGetTypeReferenceName);
+  describe("hasAllReadonlyPropertyMembers", testHasAllReadonlyPropertyMembers);
+  describe("hasNamedTypeReferenceWithTypeArguments", testHasNamedTypeReferenceWithTypeArguments);
+  describe("hasTypeArguments", testHasTypeArguments);
+  describe("isNamedTypeReference", testIsNamedTypeReference);
+  describe("unwrapTsExpression", testUnwrapTsExpression);
 }
 
 describe("types", testTypes);

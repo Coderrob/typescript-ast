@@ -1,13 +1,16 @@
 import { TSESTree } from "@typescript-eslint/types";
 import { parse } from "@typescript-eslint/typescript-estree";
 import {
+  getCallArgument,
   getCalleeNamePath,
+  getFirstCallArgument,
+  getMatchingCallMemberMethodName,
+  getStringLiteralCallArgument,
+  hasCallCalleeNamePath,
   hasIdentifierCallee,
   hasMemberCallee,
   isNamedCall,
   isNamedMemberCall,
-  getFirstCallArgument,
-  getStringLiteralCallArgument,
 } from "../ast/calls";
 import { asCallExpression, asExpressionStatement } from "./helpers";
 
@@ -16,14 +19,13 @@ function parseCallExpr(code: string): TSESTree.CallExpression {
   return asCallExpression(asExpressionStatement(ast.body[0]).expression);
 }
 
-function testCalls(): void {
-  describe("getCalleeNamePath", testGetCalleeNamePath);
-  describe("hasIdentifierCallee", testHasIdentifierCallee);
-  describe("hasMemberCallee", testHasMemberCallee);
-  describe("isNamedCall", testIsNamedCall);
-  describe("isNamedMemberCall", testIsNamedMemberCall);
-  describe("getFirstCallArgument", testGetFirstCallArgument);
-  describe("getStringLiteralCallArgument", testGetStringLiteralCallArgument);
+function testGetCallArgument(): void {
+  it("should return the argument at the requested index", () => {
+    expect(getCallArgument(parseCallExpr('foo("a", "b")'), 1)?.type).toBe("Literal");
+  });
+  it("should return null when the argument index is missing", () => {
+    expect(getCallArgument(parseCallExpr("foo()"), 0)).toBeNull();
+  });
 }
 
 function testGetCalleeNamePath(): void {
@@ -36,7 +38,13 @@ function testGetCalleeNamePath(): void {
   it("should return deep dotted path", () => {
     expect(getCalleeNamePath(parseCallExpr("a.b.c()").callee)).toBe("a.b.c");
   });
-  it("should return null for computed member expression", () => {
+  it("should resolve string-computed member expression paths", () => {
+    expect(getCalleeNamePath(parseCallExpr('foo["bar"]()').callee)).toBe("foo.bar");
+  });
+  it("should unwrap call-expression callees before resolving the path", () => {
+    expect(getCalleeNamePath(parseCallExpr("test.each()()").callee)).toBe("test.each");
+  });
+  it("should return null for unsupported computed member expression", () => {
     expect(getCalleeNamePath(parseCallExpr("foo[bar]()").callee)).toBeNull();
   });
 }
@@ -65,6 +73,15 @@ function testGetStringLiteralCallArgument(): void {
   });
 }
 
+function testGetMatchingCallMemberMethodName(): void {
+  it("should return a matched method name", () => {
+    expect(getMatchingCallMemberMethodName(parseCallExpr("items.push()"), new Set(["push"]))).toBe("push");
+  });
+  it("should return null when no method name matches", () => {
+    expect(getMatchingCallMemberMethodName(parseCallExpr("items.map()"), new Set(["push"]))).toBeNull();
+  });
+}
+
 function testHasIdentifierCallee(): void {
   it("should return true when callee matches name", () => {
     expect(hasIdentifierCallee(parseCallExpr("foo()"), "foo")).toBe(true);
@@ -74,6 +91,15 @@ function testHasIdentifierCallee(): void {
   });
   it("should return false for member expression callee", () => {
     expect(hasIdentifierCallee(parseCallExpr("foo.bar()"), "foo")).toBe(false);
+  });
+}
+
+function testHasCallCalleeNamePath(): void {
+  it("should return true for matching callee segments", () => {
+    expect(hasCallCalleeNamePath(parseCallExpr("foo.bar()"), ["foo", "bar"])).toBe(true);
+  });
+  it("should return false for non-matching callee segments", () => {
+    expect(hasCallCalleeNamePath(parseCallExpr("foo.bar()"), ["foo", "baz"])).toBe(false);
   });
 }
 
@@ -111,6 +137,19 @@ function testIsNamedMemberCall(): void {
   it("should return false for identifier callee", () => {
     expect(isNamedMemberCall(parseCallExpr("foo()"), "foo", "bar")).toBe(false);
   });
+}
+
+function testCalls(): void {
+  describe("getCallArgument", testGetCallArgument);
+  describe("getCalleeNamePath", testGetCalleeNamePath);
+  describe("getFirstCallArgument", testGetFirstCallArgument);
+  describe("getStringLiteralCallArgument", testGetStringLiteralCallArgument);
+  describe("getMatchingCallMemberMethodName", testGetMatchingCallMemberMethodName);
+  describe("hasIdentifierCallee", testHasIdentifierCallee);
+  describe("hasCallCalleeNamePath", testHasCallCalleeNamePath);
+  describe("hasMemberCallee", testHasMemberCallee);
+  describe("isNamedCall", testIsNamedCall);
+  describe("isNamedMemberCall", testIsNamedMemberCall);
 }
 
 describe("calls", testCalls);

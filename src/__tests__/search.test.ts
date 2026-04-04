@@ -2,11 +2,12 @@ import { AST_NODE_TYPES } from "@typescript-eslint/types";
 import { parse } from "@typescript-eslint/typescript-estree";
 import { visitorKeys } from "@typescript-eslint/visitor-keys";
 import {
-  hasMatchingDescendant,
   findDescendant,
+  hasMatchingDescendant,
   hasMatchingDescendantUntil,
+  someDescendant,
 } from "../ast/search";
-import { isIdentifier, isCallExpression } from "../guards/nodes";
+import { isCallExpression, isIdentifier } from "../guards/nodes";
 import { asIdentifier } from "./helpers";
 
 const keys = visitorKeys;
@@ -24,6 +25,15 @@ function testFindDescendant(): void {
     const found = findDescendant(parse("foo.bar", { jsx: false }), keys, isIdentifier);
     expect(found).not.toBeNull();
     expect(asIdentifier(found).name).toBe("foo");
+  });
+  it("should stop descending into blocked subtrees", () => {
+    const found = findDescendant(
+      parse("foo()", { jsx: false }),
+      keys,
+      isCallExpression,
+      (node) => node.type === AST_NODE_TYPES.ExpressionStatement
+    );
+    expect(found).toBeNull();
   });
 }
 
@@ -46,17 +56,41 @@ function testHasMatchingDescendantUntil(): void {
   });
   it("should return false when stop predicate prevents traversal", () => {
     const ast = parse("foo()", { jsx: false });
-    expect(hasMatchingDescendantUntil(ast, keys, isCallExpression, (node) => node.type === AST_NODE_TYPES.ExpressionStatement)).toBe(false);
+    expect(
+      hasMatchingDescendantUntil(
+        ast,
+        keys,
+        isCallExpression,
+        (node) => node.type === AST_NODE_TYPES.ExpressionStatement
+      )
+    ).toBe(false);
   });
   it("should return false when no descendant matches", () => {
     expect(hasMatchingDescendantUntil(parse("x", { jsx: false }), keys, isCallExpression, () => false)).toBe(false);
   });
 }
 
+function testSomeDescendant(): void {
+  it("should return true when a descendant matches", () => {
+    expect(someDescendant(parse("foo()", { jsx: false }), keys, isCallExpression)).toBe(true);
+  });
+  it("should respect the stop predicate", () => {
+    expect(
+      someDescendant(
+        parse("foo()", { jsx: false }),
+        keys,
+        isCallExpression,
+        (node) => node.type === AST_NODE_TYPES.ExpressionStatement
+      )
+    ).toBe(false);
+  });
+}
+
 function testSearch(): void {
-  describe("hasMatchingDescendant", testHasMatchingDescendant);
   describe("findDescendant", testFindDescendant);
+  describe("hasMatchingDescendant", testHasMatchingDescendant);
   describe("hasMatchingDescendantUntil", testHasMatchingDescendantUntil);
+  describe("someDescendant", testSomeDescendant);
 }
 
 describe("search", testSearch);
