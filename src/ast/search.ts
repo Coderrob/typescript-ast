@@ -15,7 +15,6 @@ export function findDescendant(
   let stack = getChildNodes(node, visitorKeys);
   while (stack.length > 0) {
     const [current, ...rest] = stack;
-    if (!current) return null;
     if (predicate(current)) return current;
     stack = getChildNodes(current, visitorKeys).concat(rest);
   }
@@ -39,7 +38,6 @@ function findDescendantUntil(
   let stack = getChildNodes(node, visitorKeys);
   while (stack.length > 0) {
     const [current, ...rest] = stack;
-    if (!current) return null;
     if (stopPredicate(current)) {
       stack = rest;
       continue;
