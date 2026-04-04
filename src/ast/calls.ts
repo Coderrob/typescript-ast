@@ -88,7 +88,7 @@ export function isNamedMemberCall(
   objectName: string,
   propertyName: string
 ): boolean {
-  if (!isMemberExpression(node.callee)) return false;
+  if (!isMemberExpression(node.callee) || node.callee.computed) return false;
   const obj = node.callee.object;
   const prop = node.callee.property;
   return isIdentifier(obj) && obj.name === objectName &&

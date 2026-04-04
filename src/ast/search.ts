@@ -34,18 +34,24 @@ function getChildNodes(
 }
 
 /**
- * Recursively collect child AST nodes across all visitor keys.
+ * Collect child AST nodes across all visitor keys.
  * @param node - The parent node.
- * @param keys - The remaining visitor keys to process.
+ * @param keys - The visitor keys to process.
  * @returns Array of child AST nodes.
  */
 function getChildNodesForKeys(
   node: Readonly<TSESTree.Node>,
   keys: readonly string[]
 ): TSESTree.Node[] {
-  const first = keys[0];
-  if (first === undefined) return [];
-  return [...getChildrenForKey(node, first), ...getChildNodesForKeys(node, keys.slice(1))];
+  /**
+   * Get children for a single visitor key from the captured node.
+   * @param key - The visitor key name.
+   * @returns Array of child AST nodes for the key.
+   */
+  function childrenForKey(key: string): TSESTree.Node[] {
+    return getChildrenForKey(node, key);
+  }
+  return keys.flatMap(childrenForKey);
 }
 
 /**

@@ -37,8 +37,9 @@ export function getObjectDestructuredParameterTypeNode(
 export function getParameterTypeAnnotation(
   param: Readonly<TSESTree.Parameter>
 ): TSESTree.TSTypeAnnotation | null {
-  if ("typeAnnotation" in param && param.typeAnnotation) {
-    if (isTSTypeAnnotation(param.typeAnnotation)) return param.typeAnnotation;
+  const targetParam = isTSParameterProperty(param) ? param.parameter : param;
+  if ("typeAnnotation" in targetParam && targetParam.typeAnnotation) {
+    if (isTSTypeAnnotation(targetParam.typeAnnotation)) return targetParam.typeAnnotation;
   }
   return null;
 }
