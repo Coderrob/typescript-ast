@@ -12,10 +12,40 @@ export function findDescendant(
   visitorKeys: Readonly<Record<string, readonly string[] | undefined>>,
   predicate: (node: Readonly<TSESTree.Node>) => boolean
 ): TSESTree.Node | null {
-  for (const child of getChildNodes(node, visitorKeys)) {
-    if (predicate(child)) return child;
-    const found = findDescendant(child, visitorKeys, predicate);
-    if (found) return found;
+  let stack = getChildNodes(node, visitorKeys);
+  while (stack.length > 0) {
+    const [current, ...rest] = stack;
+    if (!current) return null;
+    if (predicate(current)) return current;
+    stack = getChildNodes(current, visitorKeys).concat(rest);
+  }
+  return null;
+}
+
+/**
+ * Find the first descendant of node matching the predicate, halting subtree traversal when the stop predicate matches.
+ * @param node - The root node to search from.
+ * @param visitorKeys - The visitor keys map for traversal.
+ * @param predicate - The predicate to match descendants against.
+ * @param stopPredicate - The predicate that halts traversal into a subtree.
+ * @returns The first matching descendant node, or null if none found before the stop condition.
+ */
+function findDescendantUntil(
+  node: Readonly<TSESTree.Node>,
+  visitorKeys: Readonly<Record<string, readonly string[] | undefined>>,
+  predicate: (node: Readonly<TSESTree.Node>) => boolean,
+  stopPredicate: (node: Readonly<TSESTree.Node>) => boolean
+): TSESTree.Node | null {
+  let stack = getChildNodes(node, visitorKeys);
+  while (stack.length > 0) {
+    const [current, ...rest] = stack;
+    if (!current) return null;
+    if (stopPredicate(current)) {
+      stack = rest;
+      continue;
+    }
+    if (predicate(current)) return current;
+    stack = getChildNodes(current, visitorKeys).concat(rest);
   }
   return null;
 }
@@ -79,10 +109,7 @@ export function hasMatchingDescendant(
   visitorKeys: Readonly<Record<string, readonly string[] | undefined>>,
   predicate: (node: Readonly<TSESTree.Node>) => boolean
 ): boolean {
-  for (const child of getChildNodes(node, visitorKeys)) {
-    if (predicate(child) || hasMatchingDescendant(child, visitorKeys, predicate)) return true;
-  }
-  return false;
+  return findDescendant(node, visitorKeys, predicate) !== null;
 }
 
 /**
@@ -99,11 +126,7 @@ export function hasMatchingDescendantUntil(
   predicate: (node: Readonly<TSESTree.Node>) => boolean,
   stopPredicate: (node: Readonly<TSESTree.Node>) => boolean
 ): boolean {
-  for (const child of getChildNodes(node, visitorKeys)) {
-    if (stopPredicate(child)) continue;
-    if (predicate(child) || hasMatchingDescendantUntil(child, visitorKeys, predicate, stopPredicate)) return true;
-  }
-  return false;
+  return findDescendantUntil(node, visitorKeys, predicate, stopPredicate) !== null;
 }
 
 /**
