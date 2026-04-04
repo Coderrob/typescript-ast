@@ -1,5 +1,21 @@
 import { TSESTree } from "@typescript-eslint/types";
 
+type Stack = null | { readonly head: TSESTree.Node; readonly tail: Stack };
+
+/**
+ * Build a linked-list DFS stack from a nodes array, prepending nodes in traversal order.
+ * @param nodes - The nodes to prepend to the stack front.
+ * @param tail - The existing stack to append the new nodes in front of.
+ * @returns A new stack with nodes prepended in traversal order.
+ */
+function buildStack(nodes: readonly TSESTree.Node[], tail: Readonly<Stack>): Stack {
+  let result: Stack = tail;
+  for (let i = nodes.length - 1; i >= 0; i -= 1) {
+    result = { head: nodes[i], tail: result };
+  }
+  return result;
+}
+
 /**
  * Find the first descendant of node matching the predicate.
  * @param node - The root node to search from.
@@ -12,11 +28,11 @@ export function findDescendant(
   visitorKeys: Readonly<Record<string, readonly string[] | undefined>>,
   predicate: (node: Readonly<TSESTree.Node>) => boolean
 ): TSESTree.Node | null {
-  let stack = getChildNodes(node, visitorKeys);
-  while (stack.length > 0) {
-    const [current, ...rest] = stack;
+  let stack = buildStack(getChildNodes(node, visitorKeys), null);
+  while (stack !== null) {
+    const { head: current, tail } = stack;
     if (predicate(current)) return current;
-    stack = getChildNodes(current, visitorKeys).concat(rest);
+    stack = buildStack(getChildNodes(current, visitorKeys), tail);
   }
   return null;
 }
@@ -35,15 +51,15 @@ function findDescendantUntil(
   predicate: (node: Readonly<TSESTree.Node>) => boolean,
   stopPredicate: (node: Readonly<TSESTree.Node>) => boolean
 ): TSESTree.Node | null {
-  let stack = getChildNodes(node, visitorKeys);
-  while (stack.length > 0) {
-    const [current, ...rest] = stack;
+  let stack = buildStack(getChildNodes(node, visitorKeys), null);
+  while (stack !== null) {
+    const { head: current, tail } = stack;
     if (stopPredicate(current)) {
-      stack = rest;
+      stack = tail;
       continue;
     }
     if (predicate(current)) return current;
-    stack = getChildNodes(current, visitorKeys).concat(rest);
+    stack = buildStack(getChildNodes(current, visitorKeys), tail);
   }
   return null;
 }

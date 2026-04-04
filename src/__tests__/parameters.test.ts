@@ -55,6 +55,12 @@ function testGetParameterTypeAnnotation(): void {
     expect(annotation).not.toBeNull();
     expect(annotation?.type).toBe("TSTypeAnnotation");
   });
+  it("should return type annotation from TSParameterProperty", () => {
+    const fn = parseClassCtor("class C { constructor(private x: string) {} }");
+    const annotation = getParameterTypeAnnotation(fn.params[0]);
+    expect(annotation).not.toBeNull();
+    expect(annotation?.type).toBe("TSTypeAnnotation");
+  });
   it("should return null for parameter without type annotation", () => {
     expect(getParameterTypeAnnotation(parseFn("function f(x) {}").params[0])).toBeNull();
   });
