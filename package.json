@@ -1,0 +1,48 @@
+{
+  "name": "@coderrob/typescript-ast",
+  "version": "0.1.0",
+  "description": "Reusable, policy-agnostic AST interpretation helpers for TypeScript analysis",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "publint": "publint",
+    "benchmark": "npm run build && node benchmarks/index.js"
+  },
+  "keywords": [
+    "typescript",
+    "ast",
+    "eslint",
+    "analysis"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@coderrob/eslint-plugin-zero-tolerance": "^1.2.2",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@typescript-eslint/types": "^8.0.0",
+    "@typescript-eslint/typescript-estree": "^8.0.0",
+    "eslint": "^9.0.0",
+    "publint": "^0.3.18",
+    "tinybench": "^6.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^3.0.0"
+  },
+  "peerDependencies": {
+    "@typescript-eslint/types": "^8.0.0"
+  }
+}
