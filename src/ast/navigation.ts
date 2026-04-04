@@ -91,16 +91,23 @@ export function getParentBlockStatement(
 
 /**
  * Check if a node or ancestor array is inside a boundary defined by stopTypes and matchTypes.
- * @param node - The starting node or ancestor array.
- * @param stopTypes - Boundary types that stop traversal, or match types for ancestor-array mode.
- * @param matchTypes - Boundary types that count as a match, or stop types for ancestor-array mode.
+ * @param ancestors - The ancestor array to walk (innermost-last).
+ * @param stopTypes - Boundary types that stop traversal.
+ * @param matchTypes - Boundary types that count as a match.
  * @returns True if a match boundary is reached before a stop boundary.
  */
 export function isInsideBoundary(
   ancestors: ReadonlyArray<TSESTree.Node>,
-  matchTypes: ReadonlySet<AST_NODE_TYPES>,
-  stopTypes: ReadonlySet<AST_NODE_TYPES>
+  stopTypes: ReadonlySet<AST_NODE_TYPES>,
+  matchTypes: ReadonlySet<AST_NODE_TYPES>
 ): boolean;
+/**
+ * Check if a node is inside a boundary defined by stopTypes and matchTypes.
+ * @param node - The starting node.
+ * @param stopTypes - Boundary types that stop traversal.
+ * @param matchTypes - Boundary types that count as a match.
+ * @returns True if a match boundary is reached before a stop boundary.
+ */
 export function isInsideBoundary(
   node: Readonly<TSESTree.Node> | null | undefined,
   stopTypes: readonly AST_NODE_TYPES[],
@@ -108,34 +115,34 @@ export function isInsideBoundary(
 ): boolean;
 export function isInsideBoundary(
   nodeOrAncestors: Readonly<TSESTree.Node> | ReadonlyArray<TSESTree.Node> | null | undefined,
-  stopTypesOrMatchTypes: readonly AST_NODE_TYPES[] | ReadonlySet<AST_NODE_TYPES>,
-  matchTypesOrStopTypes: readonly AST_NODE_TYPES[] | ReadonlySet<AST_NODE_TYPES>
+  stopTypes: readonly AST_NODE_TYPES[] | ReadonlySet<AST_NODE_TYPES>,
+  matchTypes: readonly AST_NODE_TYPES[] | ReadonlySet<AST_NODE_TYPES>
 ): boolean {
   if (Array.isArray(nodeOrAncestors)) {
     const ancestors = nodeOrAncestors;
-    const matchTypes = stopTypesOrMatchTypes as ReadonlySet<AST_NODE_TYPES>;
-    const stopTypes = matchTypesOrStopTypes as ReadonlySet<AST_NODE_TYPES>;
+    const stopTypesSet = stopTypes as ReadonlySet<AST_NODE_TYPES>;
+    const matchTypesSet = matchTypes as ReadonlySet<AST_NODE_TYPES>;
     for (let index = ancestors.length - 1; index >= 0; index -= 1) {
       const ancestorType = ancestors[index].type;
-      if (stopTypes.has(ancestorType)) {
+      if (stopTypesSet.has(ancestorType)) {
         return false;
       }
-      if (matchTypes.has(ancestorType)) {
+      if (matchTypesSet.has(ancestorType)) {
         return true;
       }
     }
     return false;
   }
 
-  const stopTypes = stopTypesOrMatchTypes as readonly AST_NODE_TYPES[];
-  const matchTypes = matchTypesOrStopTypes as readonly AST_NODE_TYPES[];
+  const stopTypesArr = stopTypes as readonly AST_NODE_TYPES[];
+  const matchTypesArr = matchTypes as readonly AST_NODE_TYPES[];
   const node = nodeOrAncestors as Readonly<TSESTree.Node> | null | undefined;
   let currentNode = node ? getNodeParent(node) : undefined;
   while (currentNode !== undefined) {
-    if (matchTypes.includes(currentNode.type)) {
+    if (matchTypesArr.includes(currentNode.type)) {
       return true;
     }
-    if (stopTypes.includes(currentNode.type)) {
+    if (stopTypesArr.includes(currentNode.type)) {
       return false;
     }
     currentNode = getNodeParent(currentNode);

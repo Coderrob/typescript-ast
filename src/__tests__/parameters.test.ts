@@ -14,10 +14,12 @@ import {
 } from "../ast/parameters";
 import {
   asClassDeclaration,
+  asAssignmentPattern,
   asFunctionDeclaration,
   asFunctionExpression,
   asIdentifier,
   asMethodDefinition,
+  asRestElement,
 } from "./helpers";
 
 function parseClassCtor(code: string): TSESTree.FunctionExpression {
@@ -104,13 +106,13 @@ function testGetTsParameterPropertyIdentifier(): void {
 
 function testNamedParameterHelpers(): void {
   it("should resolve assignment-pattern identifiers", () => {
-    const assignment = parseFn("function f(x = 1) {}").params[0] as TSESTree.AssignmentPattern;
+    const assignment = asAssignmentPattern(parseFn("function f(x = 1) {}").params[0]);
     expect(getAssignmentPatternIdentifier(assignment)?.name).toBe("x");
     expect(getNamedParameterIdentifier(assignment)?.name).toBe("x");
     expect(getNamedParameterName(assignment)).toBe("x");
   });
   it("should resolve rest-element identifiers", () => {
-    const rest = parseFn("function f(...items) {}").params[0] as TSESTree.RestElement;
+    const rest = asRestElement(parseFn("function f(...items) {}").params[0]);
     expect(getRestElementIdentifier(rest)?.name).toBe("items");
     expect(getNamedParameterIdentifier(rest)?.name).toBe("items");
   });

@@ -136,19 +136,14 @@ export function getVisitorChildNodes(
   node: Readonly<TSESTree.Node>,
   sourceCode: SourceCodeVisitorKeysLike
 ): ReadonlyArray<TSESTree.Node> {
-  const childNodes: TSESTree.Node[] = [];
   const visitorKeys = sourceCode.visitorKeys[node.type] ?? [];
-  for (const key of visitorKeys) {
+  return visitorKeys.flatMap((key) => {
     const value = Reflect.get(node, key);
     if (Array.isArray(value)) {
-      childNodes.push(...value.filter(isNodeLike));
-      continue;
+      return value.filter(isNodeLike);
     }
-    if (isNodeLike(value)) {
-      childNodes.push(value);
-    }
-  }
-  return childNodes;
+    return isNodeLike(value) ? [value] : [];
+  });
 }
 
 /**

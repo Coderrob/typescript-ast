@@ -35,6 +35,15 @@ function testFindDescendant(): void {
     );
     expect(found).toBeNull();
   });
+  it("should return a node matching both predicate and stop predicate", () => {
+    const found = findDescendant(
+      parse("foo()", { jsx: false }),
+      keys,
+      isCallExpression,
+      isCallExpression
+    );
+    expect(found?.type).toBe("CallExpression");
+  });
 }
 
 function testHasMatchingDescendant(): void {

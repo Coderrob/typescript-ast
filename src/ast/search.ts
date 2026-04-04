@@ -21,7 +21,7 @@ function buildStack(nodes: readonly TSESTree.Node[], tail: Readonly<Stack>): Sta
  * @param node - The root node to search from.
  * @param visitorKeys - The visitor keys map for traversal.
  * @param predicate - The predicate to match descendants against.
- * @param stopPredicate - Optional predicate that stops traversal into a subtree.
+ * @param stopPredicate - Optional predicate that stops traversal into a node's children. A node matching both predicates is still returned; only its subtree is skipped.
  * @returns The first matching descendant node, or null if none found.
  */
 export function findDescendant(
@@ -33,12 +33,12 @@ export function findDescendant(
   let stack = buildStack(getChildNodes(node, visitorKeys), null);
   while (stack !== null) {
     const { head: current, tail } = stack;
+    if (predicate(current)) {
+      return current;
+    }
     if (stopPredicate?.(current)) {
       stack = tail;
       continue;
-    }
-    if (predicate(current)) {
-      return current;
     }
     stack = buildStack(getChildNodes(current, visitorKeys), tail);
   }

@@ -115,11 +115,11 @@ export function hasCallCalleeNamePath(
  * Check if a call expression is to a named function.
  * @param node - The call expression node.
  * @param name - The expected dotted name path.
- * @returns True if the callee name path matches the given name.
+ * @returns True if the callee is an identifier or member expression whose name path matches the given name.
  */
 export function isNamedCall(node: Readonly<TSESTree.CallExpression>, name: string): boolean {
   const callee = node.callee;
-  return (isIdentifier(callee) || isMemberExpression(callee) || isCallExpression(callee)) &&
+  return (isIdentifier(callee) || isMemberExpression(callee)) &&
     getCalleeNamePath(callee) === name;
 }
 

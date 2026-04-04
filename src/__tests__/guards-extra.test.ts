@@ -1,4 +1,4 @@
-import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/types";
+import { TSESTree } from "@typescript-eslint/types";
 import { parse } from "@typescript-eslint/typescript-estree";
 import {
   isBinaryExpression,
@@ -15,10 +15,10 @@ import {
   isVariableDeclaration,
   isVariableDeclarator,
 } from "../guards/nodes";
-import { asClassDeclaration, asVariableDeclaration } from "./helpers";
+import { asClassDeclaration, asExpressionStatement, asSwitchStatement, asTSEnumDeclaration, asVariableDeclaration } from "./helpers";
 
 function parseExpr(code: string): TSESTree.Expression {
-  return (parse(`${code};`, { jsx: false }).body[0] as TSESTree.ExpressionStatement).expression;
+  return asExpressionStatement(parse(`${code};`, { jsx: false }).body[0]).expression;
 }
 
 describe("extra guards", () => {
@@ -47,10 +47,10 @@ describe("extra guards", () => {
   });
 
   it("should identify switch cases and enum members", () => {
-    const switchStatement = parse("switch (x) { case 1: break; }", { jsx: false }).body[0] as TSESTree.SwitchStatement;
-    const enumDeclaration = parse("enum E { A = 1 }", { jsx: false }).body[0] as TSESTree.TSEnumDeclaration;
+    const switchStatement = asSwitchStatement(parse("switch (x) { case 1: break; }", { jsx: false }).body[0]);
+    const enumDeclaration = asTSEnumDeclaration(parse("enum E { A = 1 }", { jsx: false }).body[0]);
     expect(isSwitchCase(switchStatement.cases[0])).toBe(true);
-    expect(isTSEnumMember(enumDeclaration.members[0])).toBe(true);
+    expect(isTSEnumMember(enumDeclaration.body.members[0])).toBe(true);
   });
 
   it("should identify TS non-null, unary, and uncomputed member expressions", () => {

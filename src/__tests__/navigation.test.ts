@@ -12,6 +12,7 @@ import {
   asBlockStatement,
   asExpressionStatement,
   asFunctionDeclaration,
+  asForStatement,
   asReturnStatement,
   attachParents,
 } from "./helpers";
@@ -107,17 +108,16 @@ function testIsInsideBoundary(): void {
     expect(isInsideBoundary(ret, [AST_NODE_TYPES.BlockStatement], [AST_NODE_TYPES.FunctionDeclaration])).toBe(false);
   });
   it("should support ancestor-array boundary checks", () => {
-    const ancestors = [
-      { type: AST_NODE_TYPES.Program },
-      { type: AST_NODE_TYPES.ForStatement },
-      { type: AST_NODE_TYPES.BlockStatement },
-    ] as TSESTree.Node[];
+    const ast = parseProgWithParents("for (;;) { x; }");
+    const loop = asForStatement(ast.body[0]);
+    const block = asBlockStatement(loop.body);
+    const ancestors = [ast, loop, block];
 
     expect(
       isInsideBoundary(
         ancestors,
-        new Set([AST_NODE_TYPES.ForStatement]),
-        new Set([AST_NODE_TYPES.FunctionExpression])
+        new Set([AST_NODE_TYPES.FunctionExpression]),
+        new Set([AST_NODE_TYPES.ForStatement])
       )
     ).toBe(true);
   });

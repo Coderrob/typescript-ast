@@ -122,6 +122,9 @@ function testIsNamedCall(): void {
   it("should return false for non-matching name", () => {
     expect(isNamedCall(parseCallExpr("foo()"), "bar")).toBe(false);
   });
+  it("should return false for chained call expressions like foo()()", () => {
+    expect(isNamedCall(parseCallExpr("foo()()"), "foo")).toBe(false);
+  });
 }
 
 function testIsNamedMemberCall(): void {

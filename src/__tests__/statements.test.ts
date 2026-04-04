@@ -7,7 +7,7 @@ import {
   getReturnStatement,
   getSingleReturnStatement,
 } from "../ast/statements";
-import { asBlockStatement, asFunctionDeclaration, attachParents } from "./helpers";
+import { asBlockStatement, asExpressionStatement, asFunctionDeclaration, attachParents } from "./helpers";
 
 function parseFn(code: string): TSESTree.FunctionDeclaration {
   return asFunctionDeclaration(parse(code, { jsx: false }).body[0]);
@@ -24,7 +24,7 @@ function parseProgWithParents(code: string): TSESTree.Program {
 }
 
 function parseExpr(code: string): TSESTree.Expression {
-  return (parseProg(`${code};`).body[0] as TSESTree.ExpressionStatement).expression;
+  return asExpressionStatement(parseProg(`${code};`).body[0]).expression;
 }
 
 function testGetBooleanLiteralValue(): void {
