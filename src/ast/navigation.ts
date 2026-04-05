@@ -1,7 +1,9 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/types";
 import { isBlockStatement, isFunctionLike } from "../guards/nodes";
 
-type BoundaryTypes = ReadonlySet<AST_NODE_TYPES> | ReadonlyArray<AST_NODE_TYPES>;
+type BoundaryTypes =
+  | ReadonlySet<AST_NODE_TYPES>
+  | ReadonlyArray<AST_NODE_TYPES>;
 
 /**
  * Walk up the parent chain to find the first ancestor matching the predicate.
@@ -11,11 +13,11 @@ type BoundaryTypes = ReadonlySet<AST_NODE_TYPES> | ReadonlyArray<AST_NODE_TYPES>
  */
 export function findAncestor<T extends TSESTree.Node>(
   node: Readonly<TSESTree.Node> | null | undefined,
-  predicate: (node: Readonly<TSESTree.Node>) => node is T
+  predicate: (node: Readonly<TSESTree.Node>) => node is T,
 ): T | null;
 export function findAncestor(
   node: Readonly<TSESTree.Node> | null | undefined,
-  predicate: (node: Readonly<TSESTree.Node>) => boolean
+  predicate: (node: Readonly<TSESTree.Node>) => boolean,
 ): TSESTree.Node | null;
 /**
  * Walk up the parent chain to find the first ancestor matching the predicate.
@@ -25,7 +27,7 @@ export function findAncestor(
  */
 export function findAncestor(
   node: Readonly<TSESTree.Node> | null | undefined,
-  predicate: (node: Readonly<TSESTree.Node>) => boolean
+  predicate: (node: Readonly<TSESTree.Node>) => boolean,
 ): TSESTree.Node | null {
   const parent = node ? getNodeParent(node) : undefined;
   if (!parent) {
@@ -40,8 +42,13 @@ export function findAncestor(
  * @returns The nearest enclosing function-like node, or null if none found.
  */
 export function findEnclosingFunction(
-  node: Readonly<TSESTree.Node> | null | undefined
-): TSESTree.FunctionDeclaration | TSESTree.FunctionExpression | TSESTree.ArrowFunctionExpression | TSESTree.TSDeclareFunction | null {
+  node: Readonly<TSESTree.Node> | null | undefined,
+):
+  | TSESTree.FunctionDeclaration
+  | TSESTree.FunctionExpression
+  | TSESTree.ArrowFunctionExpression
+  | TSESTree.TSDeclareFunction
+  | null {
   const parent = node ? getNodeParent(node) : undefined;
   if (!parent) {
     return null;
@@ -57,10 +64,10 @@ export function findEnclosingFunction(
  */
 export function getNextStatementInBlock(
   block: Readonly<TSESTree.BlockStatement>,
-  node: Readonly<TSESTree.Statement>
+  node: Readonly<TSESTree.Statement>,
 ): TSESTree.Statement | null {
   const index = block.body.indexOf(node);
-  return index === -1 ? null : block.body[index + 1] ?? null;
+  return index === -1 ? null : (block.body[index + 1] ?? null);
 }
 
 /**
@@ -68,7 +75,9 @@ export function getNextStatementInBlock(
  * @param node - The AST node to get the parent of.
  * @returns The parent node, or undefined if none.
  */
-export function getNodeParent(node: Readonly<TSESTree.Node>): TSESTree.Node | undefined {
+export function getNodeParent(
+  node: Readonly<TSESTree.Node>,
+): TSESTree.Node | undefined {
   const parent: unknown = Reflect.get(node, "parent");
   return isAstNode(parent) ? parent : undefined;
 }
@@ -79,7 +88,7 @@ export function getNodeParent(node: Readonly<TSESTree.Node>): TSESTree.Node | un
  * @returns The nearest parent BlockStatement, or null if none found.
  */
 export function getParentBlockStatement(
-  node: Readonly<TSESTree.Node> | null | undefined
+  node: Readonly<TSESTree.Node> | null | undefined,
 ): TSESTree.BlockStatement | null {
   const parent = node ? getNodeParent(node) : undefined;
   if (!parent) {
@@ -96,7 +105,7 @@ export function getParentBlockStatement(
  */
 function hasBoundaryType(
   types: Readonly<BoundaryTypes>,
-  expectedType: Readonly<AST_NODE_TYPES>
+  expectedType: Readonly<AST_NODE_TYPES>,
 ): boolean {
   return isBoundaryArray(types)
     ? hasBoundaryTypeInArray(types, expectedType)
@@ -111,7 +120,7 @@ function hasBoundaryType(
  */
 function hasBoundaryTypeInArray(
   types: ReadonlyArray<AST_NODE_TYPES>,
-  expectedType: Readonly<AST_NODE_TYPES>
+  expectedType: Readonly<AST_NODE_TYPES>,
 ): boolean {
   return types.includes(expectedType);
 }
@@ -130,57 +139,110 @@ function isAstNode(value: unknown): value is TSESTree.Node {
  * @param types - The boundary collection to inspect.
  * @returns True when the collection is an array.
  */
-function isBoundaryArray(types: Readonly<BoundaryTypes>): types is ReadonlyArray<AST_NODE_TYPES> {
+function isBoundaryArray(
+  types: Readonly<BoundaryTypes>,
+): types is ReadonlyArray<AST_NODE_TYPES> {
   return Array.isArray(types);
 }
 
 /**
- * Check if a node or ancestor array is inside a boundary defined by stopTypes and matchTypes.
- * @param nodeOrAncestors - The starting node or ancestor array.
- * @param stopTypesOrMatchTypes - Stop types for node traversal, or match types for ancestor arrays.
- * @param matchTypesOrStopTypes - Match types for node traversal, or stop types for ancestor arrays.
+ * Check if an ancestor array is inside a boundary defined by stopTypes and matchTypes.
+ * @param ancestors - The ancestor array to walk (innermost-last).
+ * @param stopTypes - Boundary types that stop traversal.
+ * @param matchTypes - Boundary types that count as a match.
  * @returns True if a match boundary is reached before a stop boundary.
  */
 export function isInsideBoundary(
-  nodeOrAncestors: Readonly<TSESTree.Node> | ReadonlyArray<TSESTree.Node> | null | undefined,
-  stopTypesOrMatchTypes: Readonly<BoundaryTypes>,
-  matchTypesOrStopTypes: Readonly<BoundaryTypes>
+  ancestors: ReadonlyArray<TSESTree.Node>,
+  stopTypes: Readonly<BoundaryTypes>,
+  matchTypes: Readonly<BoundaryTypes>,
+): boolean;
+/**
+ * Check if a node is inside a boundary defined by stopTypes and matchTypes.
+ * @param node - The starting node.
+ * @param stopTypes - Boundary types that stop traversal.
+ * @param matchTypes - Boundary types that count as a match.
+ * @returns True if a match boundary is reached before a stop boundary.
+ */
+export function isInsideBoundary(
+  node: Readonly<TSESTree.Node> | null | undefined,
+  stopTypes: Readonly<BoundaryTypes>,
+  matchTypes: Readonly<BoundaryTypes>,
+): boolean;
+/**
+ * Check whether a node or ancestor array is inside the requested boundary.
+ * @param nodeOrAncestors - The starting node or ancestor array.
+ * @param stopTypes - Boundary types that stop traversal.
+ * @param matchTypes - Boundary types that count as a match.
+ * @returns True if a match boundary is reached before a stop boundary.
+ */
+export function isInsideBoundary(
+  nodeOrAncestors:
+    | Readonly<TSESTree.Node>
+    | ReadonlyArray<TSESTree.Node>
+    | null
+    | undefined,
+  stopTypes: Readonly<BoundaryTypes>,
+  matchTypes: Readonly<BoundaryTypes>,
 ): boolean {
   if (isNodeArray(nodeOrAncestors)) {
-    return isInsideBoundaryForAncestors(
-      nodeOrAncestors,
-      stopTypesOrMatchTypes,
-      matchTypesOrStopTypes
-    );
+    return isInsideBoundaryForAncestors(nodeOrAncestors, stopTypes, matchTypes);
   }
   return nodeOrAncestors
-    ? isInsideBoundaryForNode(nodeOrAncestors, stopTypesOrMatchTypes, matchTypesOrStopTypes)
+    ? isInsideBoundaryForNode(nodeOrAncestors, stopTypes, matchTypes)
     : false;
 }
 
 /**
  * Check boundary membership using an ancestor array.
  * @param ancestors - The ancestors ordered from outermost to innermost.
- * @param matchTypes - Boundary types that count as a match.
  * @param stopTypes - Boundary types that stop traversal.
+ * @param matchTypes - Boundary types that count as a match.
  * @returns True if a match boundary is reached before a stop boundary.
  */
 function isInsideBoundaryForAncestors(
   ancestors: ReadonlyArray<TSESTree.Node>,
+  stopTypes: Readonly<BoundaryTypes>,
   matchTypes: Readonly<BoundaryTypes>,
-  stopTypes: Readonly<BoundaryTypes>
 ): boolean {
-  const ancestor = ancestors[ancestors.length - 1];
-  if (!ancestor) {
-    return false;
-  }
-  if (hasBoundaryType(stopTypes, ancestor.type)) {
+  return isInsideBoundaryForAncestorsAtIndex(
+    ancestors,
+    ancestors.length - 1,
+    stopTypes,
+    matchTypes,
+  );
+}
+
+/**
+ * Check boundary membership at a specific ancestor index.
+ * @param ancestors - The ancestors ordered from outermost to innermost.
+ * @param index - The current ancestor index.
+ * @param stopTypes - Boundary types that stop traversal.
+ * @param matchTypes - Boundary types that count as a match.
+ * @returns True if a match boundary is reached before a stop boundary.
+ */
+function isInsideBoundaryForAncestorsAtIndex(
+  ancestors: ReadonlyArray<TSESTree.Node>,
+  index: number,
+  stopTypes: Readonly<BoundaryTypes>,
+  matchTypes: Readonly<BoundaryTypes>,
+): boolean {
+  const ancestor = ancestors[index];
+  if (ancestor === undefined) {
     return false;
   }
   if (hasBoundaryType(matchTypes, ancestor.type)) {
     return true;
   }
-  return isInsideBoundaryForAncestors(ancestors.slice(0, -1), matchTypes, stopTypes);
+  if (hasBoundaryType(stopTypes, ancestor.type)) {
+    return false;
+  }
+  return isInsideBoundaryForAncestorsAtIndex(
+    ancestors,
+    index - 1,
+    stopTypes,
+    matchTypes,
+  );
 }
 
 /**
@@ -193,19 +255,41 @@ function isInsideBoundaryForAncestors(
 function isInsideBoundaryForNode(
   node: Readonly<TSESTree.Node>,
   stopTypes: Readonly<BoundaryTypes>,
-  matchTypes: Readonly<BoundaryTypes>
+  matchTypes: Readonly<BoundaryTypes>,
 ): boolean {
-  const parent = getNodeParent(node);
-  if (!parent) {
+  return isInsideBoundaryForParentNode(
+    getNodeParent(node),
+    stopTypes,
+    matchTypes,
+  );
+}
+
+/**
+ * Check boundary membership starting from a parent node.
+ * @param node - The current parent node.
+ * @param stopTypes - Boundary types that stop traversal.
+ * @param matchTypes - Boundary types that count as a match.
+ * @returns True if a match boundary is reached before a stop boundary.
+ */
+function isInsideBoundaryForParentNode(
+  node: Readonly<TSESTree.Node> | undefined,
+  stopTypes: Readonly<BoundaryTypes>,
+  matchTypes: Readonly<BoundaryTypes>,
+): boolean {
+  if (!node) {
     return false;
   }
-  if (hasBoundaryType(matchTypes, parent.type)) {
+  if (hasBoundaryType(matchTypes, node.type)) {
     return true;
   }
-  if (hasBoundaryType(stopTypes, parent.type)) {
+  if (hasBoundaryType(stopTypes, node.type)) {
     return false;
   }
-  return isInsideBoundaryForNode(parent, stopTypes, matchTypes);
+  return isInsideBoundaryForParentNode(
+    getNodeParent(node),
+    stopTypes,
+    matchTypes,
+  );
 }
 
 /**

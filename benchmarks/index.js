@@ -16,19 +16,31 @@ const bench = new Bench({ iterations: 100000 });
 bench
   .add("getCalleeNamePath — identifier", () => {
     const stmt = astSimple.body[0];
-    if (stmt && stmt.type === "ExpressionStatement" && stmt.expression.type === "CallExpression") {
+    if (
+      stmt &&
+      stmt.type === "ExpressionStatement" &&
+      stmt.expression.type === "CallExpression"
+    ) {
       lib.getCalleeNamePath(stmt.expression.callee);
     }
   })
   .add("getCalleeNamePath — member chain", () => {
     const stmt = astMember.body[0];
-    if (stmt && stmt.type === "ExpressionStatement" && stmt.expression.type === "CallExpression") {
+    if (
+      stmt &&
+      stmt.type === "ExpressionStatement" &&
+      stmt.expression.type === "CallExpression"
+    ) {
       lib.getCalleeNamePath(stmt.expression.callee);
     }
   })
   .add("isNamedCall — match", () => {
     const stmt = astSimple.body[0];
-    if (stmt && stmt.type === "ExpressionStatement" && stmt.expression.type === "CallExpression") {
+    if (
+      stmt &&
+      stmt.type === "ExpressionStatement" &&
+      stmt.expression.type === "CallExpression"
+    ) {
       lib.isNamedCall(stmt.expression, "foo");
     }
   })
@@ -36,7 +48,12 @@ bench
     lib.hasMatchingDescendant(astNested, visitorKeys, guards.isCallExpression);
   })
   .add("hasMatchingDescendantUntil — Identifier", () => {
-    lib.hasMatchingDescendantUntil(astNested, visitorKeys, guards.isIdentifier, () => false);
+    lib.hasMatchingDescendantUntil(
+      astNested,
+      visitorKeys,
+      guards.isIdentifier,
+      () => false,
+    );
   })
   .add("findDescendant — CallExpression", () => {
     lib.findDescendant(astNested, visitorKeys, guards.isCallExpression);
@@ -50,8 +67,8 @@ bench.run().then(() => {
         "Task Name": task.name,
         "ops/sec": r ? Math.round(r.throughput.mean).toLocaleString() : "N/A",
         "avg (ns)": r ? (r.latency.mean * 1e6).toFixed(0) : "N/A",
-        "Margin": r ? `\u00b1${r.latency.rme.toFixed(2)}%` : "N/A",
+        Margin: r ? `\u00b1${r.latency.rme.toFixed(2)}%` : "N/A",
       };
-    })
+    }),
   );
 });

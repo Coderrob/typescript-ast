@@ -8,7 +8,10 @@ type Stack = null | { readonly head: TSESTree.Node; readonly tail: Stack };
  * @param tail - The existing stack to append the new nodes in front of.
  * @returns A new stack with nodes prepended in traversal order.
  */
-function buildStack(nodes: readonly TSESTree.Node[], tail: Readonly<Stack>): Stack {
+function buildStack(
+  nodes: readonly TSESTree.Node[],
+  tail: Readonly<Stack>,
+): Stack {
   let result: Stack = tail;
   for (let index = nodes.length - 1; index >= 0; index -= 1) {
     result = { head: nodes[index], tail: result };
@@ -21,24 +24,24 @@ function buildStack(nodes: readonly TSESTree.Node[], tail: Readonly<Stack>): Sta
  * @param node - The root node to search from.
  * @param visitorKeys - The visitor keys map for traversal.
  * @param predicate - The predicate to match descendants against.
- * @param stopPredicate - Optional predicate that stops traversal into a subtree.
+ * @param stopPredicate - Optional predicate that stops traversal into a node's children. A node matching both predicates is still returned; only its subtree is skipped.
  * @returns The first matching descendant node, or null if none found.
  */
 export function findDescendant(
   node: Readonly<TSESTree.Node>,
   visitorKeys: Readonly<Record<string, readonly string[] | undefined>>,
   predicate: (node: Readonly<TSESTree.Node>) => boolean,
-  stopPredicate?: (node: Readonly<TSESTree.Node>) => boolean
+  stopPredicate?: (node: Readonly<TSESTree.Node>) => boolean,
 ): TSESTree.Node | null {
   let stack = buildStack(getChildNodes(node, visitorKeys), null);
   while (stack !== null) {
     const { head: current, tail } = stack;
+    if (predicate(current)) {
+      return current;
+    }
     if (stopPredicate?.(current)) {
       stack = tail;
       continue;
-    }
-    if (predicate(current)) {
-      return current;
     }
     stack = buildStack(getChildNodes(current, visitorKeys), tail);
   }
@@ -53,7 +56,7 @@ export function findDescendant(
  */
 function getChildNodes(
   node: Readonly<TSESTree.Node>,
-  visitorKeys: Readonly<Record<string, readonly string[] | undefined>>
+  visitorKeys: Readonly<Record<string, readonly string[] | undefined>>,
 ): TSESTree.Node[] {
   return getChildNodesForKeys(node, visitorKeys[node.type] ?? []);
 }
@@ -66,7 +69,7 @@ function getChildNodes(
  */
 function getChildNodesForKeys(
   node: Readonly<TSESTree.Node>,
-  keys: readonly string[]
+  keys: readonly string[],
 ): TSESTree.Node[] {
   /**
    * Resolve child nodes for one visitor key on the current node.
@@ -85,7 +88,10 @@ function getChildNodesForKeys(
  * @param key - The visitor key to read.
  * @returns The child AST nodes for that key.
  */
-function getChildrenForKey(node: Readonly<TSESTree.Node>, key: string): TSESTree.Node[] {
+function getChildrenForKey(
+  node: Readonly<TSESTree.Node>,
+  key: string,
+): TSESTree.Node[] {
   return [...getChildrenForKeyValue(Reflect.get(node, key))];
 }
 
@@ -111,7 +117,7 @@ function getChildrenForKeyValue(value: unknown): readonly TSESTree.Node[] {
 export function hasMatchingDescendant(
   node: Readonly<TSESTree.Node>,
   visitorKeys: Readonly<Record<string, readonly string[] | undefined>>,
-  predicate: (node: Readonly<TSESTree.Node>) => boolean
+  predicate: (node: Readonly<TSESTree.Node>) => boolean,
 ): boolean {
   return findDescendant(node, visitorKeys, predicate) !== null;
 }
@@ -128,7 +134,7 @@ export function hasMatchingDescendantUntil(
   node: Readonly<TSESTree.Node>,
   visitorKeys: Readonly<Record<string, readonly string[] | undefined>>,
   predicate: (node: Readonly<TSESTree.Node>) => boolean,
-  stopPredicate: (node: Readonly<TSESTree.Node>) => boolean
+  stopPredicate: (node: Readonly<TSESTree.Node>) => boolean,
 ): boolean {
   return findDescendant(node, visitorKeys, predicate, stopPredicate) !== null;
 }
@@ -145,7 +151,7 @@ export function hasSomeDescendant(
   node: Readonly<TSESTree.Node>,
   visitorKeys: Readonly<Record<string, readonly string[] | undefined>>,
   predicate: (node: Readonly<TSESTree.Node>) => boolean,
-  stopPredicate?: (node: Readonly<TSESTree.Node>) => boolean
+  stopPredicate?: (node: Readonly<TSESTree.Node>) => boolean,
 ): boolean {
   return findDescendant(node, visitorKeys, predicate, stopPredicate) !== null;
 }

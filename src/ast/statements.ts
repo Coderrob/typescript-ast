@@ -1,5 +1,9 @@
 import { TSESTree } from "@typescript-eslint/types";
-import { isBlockStatement, isLiteral, isReturnStatement } from "../guards/nodes";
+import {
+  isBlockStatement,
+  isLiteral,
+  isReturnStatement,
+} from "../guards/nodes";
 import { getNextStatementInBlock, getNodeParent } from "./navigation";
 
 /**
@@ -8,10 +12,12 @@ import { getNextStatementInBlock, getNodeParent } from "./navigation";
  * @returns The boolean value if the statement is a return with a boolean literal, otherwise null.
  */
 export function getBooleanLiteralReturnValue(
-  statement: Readonly<TSESTree.Statement> | null
+  statement: Readonly<TSESTree.Statement> | null,
 ): boolean | null {
   const returnStatement = getReturnStatement(statement);
-  return returnStatement?.argument ? getBooleanLiteralValue(returnStatement.argument) : null;
+  return returnStatement?.argument
+    ? getBooleanLiteralValue(returnStatement.argument)
+    : null;
 }
 
 /**
@@ -20,9 +26,11 @@ export function getBooleanLiteralReturnValue(
  * @returns The boolean literal value, or null.
  */
 export function getBooleanLiteralValue(
-  value: Readonly<TSESTree.Expression> | null | undefined
+  value: Readonly<TSESTree.Expression> | null | undefined,
 ): boolean | null {
-  return isLiteral(value) && typeof value.value === "boolean" ? value.value : null;
+  return isLiteral(value) && typeof value.value === "boolean"
+    ? value.value
+    : null;
 }
 
 /**
@@ -31,10 +39,12 @@ export function getBooleanLiteralValue(
  * @returns The next statement in the parent block, or null if none.
  */
 export function getFollowingStatementInBlock(
-  statement: Readonly<TSESTree.Statement>
+  statement: Readonly<TSESTree.Statement>,
 ): TSESTree.Statement | null {
   const parent = getNodeParent(statement);
-  return parent && isBlockStatement(parent) ? getNextStatementInBlock(parent, statement) : null;
+  return parent && isBlockStatement(parent)
+    ? getNextStatementInBlock(parent, statement)
+    : null;
 }
 
 /**
@@ -43,7 +53,7 @@ export function getFollowingStatementInBlock(
  * @returns The ReturnStatement, or null.
  */
 export function getReturnStatement(
-  statement: Readonly<TSESTree.Statement> | null
+  statement: Readonly<TSESTree.Statement> | null,
 ): TSESTree.ReturnStatement | null {
   if (statement === null) {
     return null;
@@ -51,7 +61,9 @@ export function getReturnStatement(
   if (isReturnStatement(statement)) {
     return statement;
   }
-  return isBlockStatement(statement) ? getSingleReturnStatement(statement) : null;
+  return isBlockStatement(statement)
+    ? getSingleReturnStatement(statement)
+    : null;
 }
 
 /**
@@ -60,8 +72,10 @@ export function getReturnStatement(
  * @returns The single ReturnStatement if present, otherwise null.
  */
 export function getSingleReturnStatement(
-  block: Readonly<TSESTree.BlockStatement>
+  block: Readonly<TSESTree.BlockStatement>,
 ): TSESTree.ReturnStatement | null {
   const statement = block.body[0];
-  return block.body.length === 1 && isReturnStatement(statement) ? statement : null;
+  return block.body.length === 1 && isReturnStatement(statement)
+    ? statement
+    : null;
 }

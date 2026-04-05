@@ -31,8 +31,12 @@ type SourceCodeVisitorKeysLike = {
  * @param node - The call expression to inspect.
  * @returns The resolved member method name, or null.
  */
-export function getCallMemberMethodName(node: Readonly<TSESTree.CallExpression>): string | null {
-  return isMemberExpression(node.callee) ? getMemberPropertyName(node.callee) : null;
+export function getCallMemberMethodName(
+  node: Readonly<TSESTree.CallExpression>,
+): string | null {
+  return isMemberExpression(node.callee)
+    ? getMemberPropertyName(node.callee)
+    : null;
 }
 
 /**
@@ -40,7 +44,9 @@ export function getCallMemberMethodName(node: Readonly<TSESTree.CallExpression>)
  * @param node - The function-like node to inspect.
  * @returns The declaration name, or null.
  */
-export function getFunctionDeclarationName(node: Readonly<FunctionNode>): string | null {
+export function getFunctionDeclarationName(
+  node: Readonly<FunctionNode>,
+): string | null {
   return isFunctionDeclaration(node) ? getIdentifierName(node.id) : null;
 }
 
@@ -49,7 +55,9 @@ export function getFunctionDeclarationName(node: Readonly<FunctionNode>): string
  * @param node - The function-like node to inspect.
  * @returns The method name, or null.
  */
-export function getFunctionMethodName(node: Readonly<FunctionNode>): string | null {
+export function getFunctionMethodName(
+  node: Readonly<FunctionNode>,
+): string | null {
   const parent = getRuntimeParent(node);
   return isMethodDefinition(parent) ? getIdentifierName(parent.key) : null;
 }
@@ -59,7 +67,9 @@ export function getFunctionMethodName(node: Readonly<FunctionNode>): string | nu
  * @param node - The function-like node to inspect.
  * @returns The variable name, or null.
  */
-export function getFunctionVariableName(node: Readonly<FunctionNode>): string | null {
+export function getFunctionVariableName(
+  node: Readonly<FunctionNode>,
+): string | null {
   const parent = getRuntimeParent(node);
   return isVariableDeclarator(parent) ? getIdentifierName(parent.id) : null;
 }
@@ -69,7 +79,9 @@ export function getFunctionVariableName(node: Readonly<FunctionNode>): string | 
  * @param node - The node to inspect.
  * @returns The identifier name, or null.
  */
-export function getIdentifierName(node: Readonly<TSESTree.Node> | null | undefined): string | null {
+export function getIdentifierName(
+  node: Readonly<TSESTree.Node> | null | undefined,
+): string | null {
   return isIdentifier(node) ? node.name : null;
 }
 
@@ -79,9 +91,11 @@ export function getIdentifierName(node: Readonly<TSESTree.Node> | null | undefin
  * @returns The string literal value, or null.
  */
 export function getLiteralStringValue(
-  node: Readonly<{ type: string; value?: unknown }> | null | undefined
+  node: Readonly<{ type: string; value?: unknown }> | null | undefined,
 ): string | null {
-  return node?.type === LITERAL_NODE_TYPE && isString(node.value) ? node.value : null;
+  return node?.type === LITERAL_NODE_TYPE && isString(node.value)
+    ? node.value
+    : null;
 }
 
 /**
@@ -92,7 +106,7 @@ export function getLiteralStringValue(
  */
 export function getMappedMemberPropertyName(
   node: Readonly<MemberExpressionLike>,
-  replacements: Readonly<Record<string, string | undefined>>
+  replacements: Readonly<Record<string, string | undefined>>,
 ): { name: string; replacement: string } | null {
   const name = getMemberPropertyName(node);
   if (name === null) {
@@ -109,7 +123,7 @@ export function getMappedMemberPropertyName(
  * @returns The property name, or null.
  */
 export function getMemberPropertyName(
-  node: Readonly<MemberExpressionLike>
+  node: Readonly<MemberExpressionLike>,
 ): string | null {
   if (!node.computed) {
     return isString(node.property.name) ? node.property.name : null;
@@ -145,7 +159,7 @@ function getRuntimeParent(node: Readonly<TSESTree.Node>): TSESTree.Node | null {
  */
 export function getVisitorChildNodes(
   node: Readonly<TSESTree.Node>,
-  sourceCode: Readonly<SourceCodeVisitorKeysLike>
+  sourceCode: Readonly<SourceCodeVisitorKeysLike>,
 ): ReadonlyArray<TSESTree.Node> {
   const visitorKeys = sourceCode.visitorKeys[node.type] ?? [];
   /**

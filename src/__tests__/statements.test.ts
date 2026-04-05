@@ -31,22 +31,40 @@ function parseProgWithParents(code: string): TSESTree.Program {
   attachParents(ast);
   return ast;
 }
-
 function testGetBooleanLiteralReturnValue(): void {
   it("should return true for return true statement", () => {
-    expect(getBooleanLiteralReturnValue(asBlockStatement(parseFn("function f() { return true; }").body).body[0])).toBe(true);
+    expect(
+      getBooleanLiteralReturnValue(
+        asBlockStatement(parseFn("function f() { return true; }").body).body[0],
+      ),
+    ).toBe(true);
   });
   it("should return false for return false statement", () => {
-    expect(getBooleanLiteralReturnValue(asBlockStatement(parseFn("function f() { return false; }").body).body[0])).toBe(false);
+    expect(
+      getBooleanLiteralReturnValue(
+        asBlockStatement(parseFn("function f() { return false; }").body)
+          .body[0],
+      ),
+    ).toBe(false);
   });
   it("should reduce a single-return block before reading the value", () => {
-    expect(getBooleanLiteralReturnValue(asBlockStatement(parseFn("function f() { return true; }").body))).toBe(true);
+    expect(
+      getBooleanLiteralReturnValue(
+        asBlockStatement(parseFn("function f() { return true; }").body),
+      ),
+    ).toBe(true);
   });
   it("should return null for return numeric literal", () => {
-    expect(getBooleanLiteralReturnValue(asBlockStatement(parseFn("function f() { return 1; }").body).body[0])).toBeNull();
+    expect(
+      getBooleanLiteralReturnValue(
+        asBlockStatement(parseFn("function f() { return 1; }").body).body[0],
+      ),
+    ).toBeNull();
   });
   it("should return null for non-return statement", () => {
-    expect(getBooleanLiteralReturnValue(parseProg("const x = 1;").body[0])).toBeNull();
+    expect(
+      getBooleanLiteralReturnValue(parseProg("const x = 1;").body[0]),
+    ).toBeNull();
   });
 }
 
@@ -72,7 +90,11 @@ function testGetFollowingStatementInBlock(): void {
     expect(getFollowingStatementInBlock(block.body[0])).toBeNull();
   });
   it("should return null when parent is not a block", () => {
-    expect(getFollowingStatementInBlock(parseProgWithParents("const x = 1;").body[0])).toBeNull();
+    expect(
+      getFollowingStatementInBlock(
+        parseProgWithParents("const x = 1;").body[0],
+      ),
+    ).toBeNull();
   });
 }
 
@@ -86,7 +108,9 @@ function testGetReturnStatement(): void {
     expect(getReturnStatement(block)).toBe(block.body[0]);
   });
   it("should return null for non-ReturnStatement", () => {
-    const block = asBlockStatement(parseFn("function f() { const x = 1; }").body);
+    const block = asBlockStatement(
+      parseFn("function f() { const x = 1; }").body,
+    );
     expect(getReturnStatement(block.body[0])).toBeNull();
   });
 }
@@ -99,20 +123,24 @@ function testGetSingleReturnStatement(): void {
     expect(ret?.type).toBe("ReturnStatement");
   });
   it("should return null when block has multiple statements", () => {
-    const block = asBlockStatement(parseFn("function f() { const x = 1; return x; }").body);
+    const block = asBlockStatement(
+      parseFn("function f() { const x = 1; return x; }").body,
+    );
     expect(getSingleReturnStatement(block)).toBeNull();
   });
   it("should return null when single statement is not return", () => {
-    expect(getSingleReturnStatement(asBlockStatement(parseFn("function f() { const x = 1; }").body))).toBeNull();
+    expect(
+      getSingleReturnStatement(
+        asBlockStatement(parseFn("function f() { const x = 1; }").body),
+      ),
+    ).toBeNull();
   });
 }
 
-function testStatements(): void {
+describe("statements", () => {
   describe("getBooleanLiteralValue", testGetBooleanLiteralValue);
   describe("getBooleanLiteralReturnValue", testGetBooleanLiteralReturnValue);
   describe("getFollowingStatementInBlock", testGetFollowingStatementInBlock);
   describe("getReturnStatement", testGetReturnStatement);
   describe("getSingleReturnStatement", testGetSingleReturnStatement);
-}
-
-describe("statements", testStatements);
+});

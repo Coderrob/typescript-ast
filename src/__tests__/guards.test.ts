@@ -59,37 +59,6 @@ function parseVarInit(code: string): TSESTree.Expression | null {
   return decl.declarations[0].init;
 }
 
-function testGuards(): void {
-  testGuardsBasic();
-  testGuardsBlock();
-  testGuardsTS();
-}
-
-function testGuardsBasic(): void {
-  describe("isIdentifier", testIsIdentifier);
-  describe("isMemberExpression", testIsMemberExpression);
-  describe("isCallExpression", testIsCallExpression);
-  describe("isLiteral", testIsLiteral);
-  describe("isStringLiteral", testIsStringLiteral);
-}
-
-function testGuardsBlock(): void {
-  describe("isBlockStatement", testIsBlockStatement);
-  describe("isReturnStatement", testIsReturnStatement);
-  describe("isFunctionLike", testIsFunctionLike);
-  describe("isTSParameterProperty", testIsTSParameterProperty);
-  describe("isTSTypeAnnotation", testIsTSTypeAnnotation);
-}
-
-function testGuardsTS(): void {
-  describe("isTSTypeReference", testIsTSTypeReference);
-  describe("isTSTypeLiteral", testIsTSTypeLiteral);
-  describe("isTSPropertySignature", testIsTSPropertySignature);
-  describe("isTSAsExpression", testIsTSAsExpression);
-  describe("isTSSatisfiesExpression", testIsTSSatisfiesExpression);
-  describe("isThisExpression", testIsThisExpression);
-}
-
 function testIsBlockStatement(): void {
   it("should return true for BlockStatement nodes", () => {
     expect(isBlockStatement(parseFn("function f() {}").body)).toBe(true);
@@ -130,7 +99,9 @@ function testIsFunctionLikeFalsy(): void {
 
 function testIsFunctionLikeTruthy(): void {
   it("should return true for FunctionDeclaration", () => {
-    expect(isFunctionLike(parse("function f() {}", { jsx: false }).body[0])).toBe(true);
+    expect(
+      isFunctionLike(parse("function f() {}", { jsx: false }).body[0]),
+    ).toBe(true);
   });
   it("should return true for FunctionExpression", () => {
     expect(isFunctionLike(parseVarInit("const f = function() {};"))).toBe(true);
@@ -184,7 +155,11 @@ function testIsMemberExpression(): void {
 
 function testIsReturnStatement(): void {
   it("should return true for ReturnStatement nodes", () => {
-    expect(isReturnStatement(asBlockStatement(parseFn("function f() { return 1; }").body).body[0])).toBe(true);
+    expect(
+      isReturnStatement(
+        asBlockStatement(parseFn("function f() { return 1; }").body).body[0],
+      ),
+    ).toBe(true);
   });
   it("should return false for ExpressionStatement", () => {
     expect(isReturnStatement(parse("x;", { jsx: false }).body[0])).toBe(false);
@@ -236,7 +211,9 @@ function testIsTSParameterProperty(): void {
     expect(isTSParameterProperty(fn.params[0])).toBe(true);
   });
   it("should return false for regular parameter", () => {
-    expect(isTSParameterProperty(parseFn("function f(x: string) {}").params[0])).toBe(false);
+    expect(
+      isTSParameterProperty(parseFn("function f(x: string) {}").params[0]),
+    ).toBe(false);
   });
   it("should return false for null", () => {
     expect(isTSParameterProperty(null)).toBe(false);
@@ -245,7 +222,9 @@ function testIsTSParameterProperty(): void {
 
 function testIsTSPropertySignature(): void {
   it("should return true for TSPropertySignature", () => {
-    const tl = asTSTypeLiteral(parseTypeAlias("type X = { a: string };").typeAnnotation);
+    const tl = asTSTypeLiteral(
+      parseTypeAlias("type X = { a: string };").typeAnnotation,
+    );
     expect(isTSPropertySignature(tl.members[0])).toBe(true);
   });
   it("should return false for null", () => {
@@ -277,7 +256,9 @@ function testIsTSTypeAnnotation(): void {
 
 function testIsTSTypeLiteral(): void {
   it("should return true for TSTypeLiteral", () => {
-    expect(isTSTypeLiteral(parseTypeAlias("type X = { a: string };").typeAnnotation)).toBe(true);
+    expect(
+      isTSTypeLiteral(parseTypeAlias("type X = { a: string };").typeAnnotation),
+    ).toBe(true);
   });
   it("should return false for null", () => {
     expect(isTSTypeLiteral(null)).toBe(false);
@@ -286,11 +267,30 @@ function testIsTSTypeLiteral(): void {
 
 function testIsTSTypeReference(): void {
   it("should return true for TSTypeReference", () => {
-    expect(isTSTypeReference(parseTSAsExpr("const x = null as Foo;").typeAnnotation)).toBe(true);
+    expect(
+      isTSTypeReference(parseTSAsExpr("const x = null as Foo;").typeAnnotation),
+    ).toBe(true);
   });
   it("should return false for null", () => {
     expect(isTSTypeReference(null)).toBe(false);
   });
 }
 
-describe("guards", testGuards);
+describe("guards", () => {
+  describe("isIdentifier", testIsIdentifier);
+  describe("isMemberExpression", testIsMemberExpression);
+  describe("isCallExpression", testIsCallExpression);
+  describe("isLiteral", testIsLiteral);
+  describe("isStringLiteral", testIsStringLiteral);
+  describe("isBlockStatement", testIsBlockStatement);
+  describe("isReturnStatement", testIsReturnStatement);
+  describe("isFunctionLike", testIsFunctionLike);
+  describe("isTSParameterProperty", testIsTSParameterProperty);
+  describe("isTSTypeAnnotation", testIsTSTypeAnnotation);
+  describe("isTSTypeReference", testIsTSTypeReference);
+  describe("isTSTypeLiteral", testIsTSTypeLiteral);
+  describe("isTSPropertySignature", testIsTSPropertySignature);
+  describe("isTSAsExpression", testIsTSAsExpression);
+  describe("isTSSatisfiesExpression", testIsTSSatisfiesExpression);
+  describe("isThisExpression", testIsThisExpression);
+});

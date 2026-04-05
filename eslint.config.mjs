@@ -22,4 +22,10 @@ export default [
     files: ["src/**/*.ts"],
     ...zeroTolerance.configs.strict,
   },
+  {
+    files: ["src/**/*.test.ts"],
+    rules: {
+      "zero-tolerance/max-function-lines": "off",
+    },
+  },
 ];

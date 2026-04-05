@@ -8,7 +8,10 @@ const WINDOWS_PATH_SEPARATOR = String.raw`\\`[0];
  * @returns The filename portion of the path.
  */
 export function getFilename(filePath: string): string {
-  const lastSeparator = Math.max(filePath.lastIndexOf("/"), filePath.lastIndexOf(WINDOWS_PATH_SEPARATOR));
+  const lastSeparator = Math.max(
+    filePath.lastIndexOf("/"),
+    filePath.lastIndexOf(WINDOWS_PATH_SEPARATOR),
+  );
   return filePath.slice(lastSeparator + 1);
 }
 
@@ -27,5 +30,8 @@ export function isBarrelFile(filePath: string): boolean {
  * @returns True when the path is `..` or begins with `../`.
  */
 export function isParentDirectoryImportPath(importPath: string): boolean {
-  return importPath === PARENT_DIRECTORY_IMPORT || importPath.startsWith(PARENT_DIRECTORY_IMPORT_PREFIX);
+  return (
+    importPath === PARENT_DIRECTORY_IMPORT ||
+    importPath.startsWith(PARENT_DIRECTORY_IMPORT_PREFIX)
+  );
 }

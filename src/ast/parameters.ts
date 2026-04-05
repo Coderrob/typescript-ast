@@ -1,5 +1,9 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/types";
-import { isIdentifier, isTSParameterProperty, isTSTypeAnnotation } from "../guards/nodes";
+import {
+  isIdentifier,
+  isTSParameterProperty,
+  isTSTypeAnnotation,
+} from "../guards/nodes";
 
 const THIS_PARAMETER_NAME = "this";
 
@@ -9,7 +13,7 @@ const THIS_PARAMETER_NAME = "this";
  * @returns The bound identifier, or null.
  */
 export function getAssignmentPatternIdentifier(
-  param: Readonly<TSESTree.AssignmentPattern>
+  param: Readonly<TSESTree.AssignmentPattern>,
 ): TSESTree.Identifier | null {
   return isIdentifier(param.left) ? param.left : null;
 }
@@ -20,7 +24,7 @@ export function getAssignmentPatternIdentifier(
  * @returns The first non-this parameter, or null if all are 'this' parameters.
  */
 export function getFirstNonThisParameter(
-  params: readonly TSESTree.Parameter[]
+  params: readonly TSESTree.Parameter[],
 ): TSESTree.Parameter | null {
   for (const param of params) {
     if (!isThisParameter(param)) {
@@ -36,7 +40,7 @@ export function getFirstNonThisParameter(
  * @returns The bound identifier, or null.
  */
 export function getNamedParameterIdentifier(
-  param: Readonly<TSESTree.Parameter>
+  param: Readonly<TSESTree.Parameter>,
 ): TSESTree.Identifier | null {
   if (isIdentifier(param)) {
     return param;
@@ -55,7 +59,9 @@ export function getNamedParameterIdentifier(
  * @param param - The parameter to inspect.
  * @returns The parameter name, or null.
  */
-export function getNamedParameterName(param: Readonly<TSESTree.Parameter>): string | null {
+export function getNamedParameterName(
+  param: Readonly<TSESTree.Parameter>,
+): string | null {
   return getNamedParameterIdentifier(param)?.name ?? null;
 }
 
@@ -65,12 +71,15 @@ export function getNamedParameterName(param: Readonly<TSESTree.Parameter>): stri
  * @returns The type node if the parameter destructures an object and is typed.
  */
 export function getObjectDestructuredParameterTypeNode(
-  param: Readonly<TSESTree.Parameter>
+  param: Readonly<TSESTree.Parameter>,
 ): TSESTree.TypeNode | null {
   if (param.type === AST_NODE_TYPES.ObjectPattern) {
     return getParameterTypeNode(param);
   }
-  if (param.type === AST_NODE_TYPES.AssignmentPattern && param.left.type === AST_NODE_TYPES.ObjectPattern) {
+  if (
+    param.type === AST_NODE_TYPES.AssignmentPattern &&
+    param.left.type === AST_NODE_TYPES.ObjectPattern
+  ) {
     return param.left.typeAnnotation?.typeAnnotation ?? null;
   }
   return null;
@@ -82,15 +91,20 @@ export function getObjectDestructuredParameterTypeNode(
  * @returns The TSTypeAnnotation node if present, otherwise null.
  */
 export function getParameterTypeAnnotation(
-  param: Readonly<TSESTree.Parameter>
+  param: Readonly<TSESTree.Parameter>,
 ): TSESTree.TSTypeAnnotation | null {
   const targetParam = isTSParameterProperty(param) ? param.parameter : param;
   if (targetParam.type === AST_NODE_TYPES.AssignmentPattern) {
-    const annotation = "typeAnnotation" in targetParam.left ? targetParam.left.typeAnnotation : undefined;
+    const annotation =
+      "typeAnnotation" in targetParam.left
+        ? targetParam.left.typeAnnotation
+        : undefined;
     return isTSTypeAnnotation(annotation) ? annotation : null;
   }
   if ("typeAnnotation" in targetParam && targetParam.typeAnnotation) {
-    return isTSTypeAnnotation(targetParam.typeAnnotation) ? targetParam.typeAnnotation : null;
+    return isTSTypeAnnotation(targetParam.typeAnnotation)
+      ? targetParam.typeAnnotation
+      : null;
   }
   return null;
 }
@@ -101,7 +115,7 @@ export function getParameterTypeAnnotation(
  * @returns The type node if a type annotation exists, otherwise null.
  */
 export function getParameterTypeNode(
-  param: Readonly<TSESTree.Parameter>
+  param: Readonly<TSESTree.Parameter>,
 ): TSESTree.TypeNode | null {
   return getParameterTypeAnnotation(param)?.typeAnnotation ?? null;
 }
@@ -112,7 +126,7 @@ export function getParameterTypeNode(
  * @returns The bound identifier, or null.
  */
 export function getRestElementIdentifier(
-  param: Readonly<TSESTree.RestElement>
+  param: Readonly<TSESTree.RestElement>,
 ): TSESTree.Identifier | null {
   return isIdentifier(param.argument) ? param.argument : null;
 }
@@ -123,7 +137,7 @@ export function getRestElementIdentifier(
  * @returns The identifier if the parameter is a TSParameterProperty with an identifier, otherwise null.
  */
 export function getTsParameterPropertyIdentifier(
-  param: Readonly<TSESTree.Parameter>
+  param: Readonly<TSESTree.Parameter>,
 ): TSESTree.Identifier | null {
   if (!isTSParameterProperty(param)) {
     return null;

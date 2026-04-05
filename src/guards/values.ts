@@ -39,7 +39,9 @@ export function isNumber(value: unknown): value is number {
  * @param value - The value to inspect.
  * @returns True when the value is a plain object.
  */
-export function isPlainObject(value: unknown): value is Record<string, unknown> {
+export function isPlainObject(
+  value: unknown,
+): value is Record<string, unknown> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return false;
   }
