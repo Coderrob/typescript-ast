@@ -84,19 +84,34 @@ Project docs:
 
 ## Benchmarks
 
-Benchmarks run with [tinybench](https://github.com/tinylibs/tinybench) on Node.js (100 000 iterations each).
+This repository includes a repeatable benchmark suite powered by [tinybench](https://github.com/tinylibs/tinybench).
 
-| Task                                      | ops/sec    | avg (ns) | margin   |
-| ----------------------------------------- | ---------- | -------- | -------- |
-| `getCalleeNamePath` - identifier          | 10,487,025 | 104      | +/-0.06% |
-| `getCalleeNamePath` - member chain        | 2,974,297  | 347      | +/-0.06% |
-| `isNamedCall` - match                     | 9,227,404  | 116      | +/-0.06% |
-| `hasMatchingDescendant` - CallExpression  | 1,255,912  | 1,001    | +/-0.68% |
-| `hasMatchingDescendantUntil` - Identifier | 588,633    | 1,813    | +/-4.41% |
-| `findDescendant` - CallExpression         | 1,550,813  | 734      | +/-2.28% |
+Important context:
+
+- Throughput values are highly machine-dependent (CPU, Node.js version, thermal state, background load).
+- Static `ops/sec` numbers in docs can become stale and misleading over time.
+- Use local benchmark execution for meaningful comparisons.
+
+Current benchmark suite (`benchmarks/index.js`):
+
+| Benchmark Task                            | What It Measures                                                   |
+| ----------------------------------------- | ------------------------------------------------------------------ |
+| `getCalleeNamePath — identifier`          | Fast-path callee extraction for simple identifier calls (`foo()`). |
+| `getCalleeNamePath — member chain`        | Callee extraction for chained member calls (`foo.bar.baz()`).      |
+| `isNamedCall — match`                     | Named call matching on a simple call expression.                   |
+| `hasMatchingDescendant — CallExpression`  | Descendant traversal and predicate match for `CallExpression`.     |
+| `hasMatchingDescendantUntil — Identifier` | Descendant traversal with stop predicate support.                  |
+| `findDescendant — CallExpression`         | Direct descendant lookup performance.                              |
 
 Run benchmarks locally:
 
 ```bash
 npm run benchmark
 ```
+
+The benchmark output includes:
+
+- task name
+- `ops/sec`
+- average latency in nanoseconds (`avg (ns)`)
+- relative margin of error (`Margin`)
