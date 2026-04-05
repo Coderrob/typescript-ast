@@ -1,13 +1,23 @@
 /**
  * Internal helpers for collecting child nodes from visitor-key metadata.
- * The implementation is iterative to keep traversal allocation patterns small
- * and the intent of each step explicit.
+ *
+ * This module normalizes the shapes exposed by ESTree visitor keys:
+ * - a single child node
+ * - an array of child nodes
+ * - non-node values, which are ignored
+ *
+ * The exported collector preserves the declared visitor-key order and the
+ * original order of any node arrays so traversal helpers can build predictable
+ * depth-first walks on top of it.
  */
 import { TSESTree } from "@typescript-eslint/types";
 import { isAstNode } from "./ast-runtime";
 
 /**
  * Internal map from AST node type to visitor keys.
+ *
+ * Each key is an AST node type and each value is the ordered list of property
+ * names that may expose traversable child nodes for that type.
  */
 export type VisitorKeyMap = Readonly<Record<string, readonly string[] | undefined>>;
 
@@ -66,8 +76,11 @@ function getChildNodesFromVisitorValue(value: unknown): TSESTree.Node[] {
 /**
  * Collect direct child AST nodes using a visitor-keys map.
  * @param node - The node to inspect.
- * @param visitorKeys - The visitor-keys map.
- * @returns The traversable child nodes.
+ * @param visitorKeys - The visitor-keys map describing traversable properties.
+ * @returns The traversable child nodes in visitor-key order.
+ *
+ * Missing visitor-key entries produce an empty result. Non-node property
+ * values are ignored instead of causing traversal to fail.
  */
 export function getVisitorChildNodes(
   node: Readonly<TSESTree.Node>,
