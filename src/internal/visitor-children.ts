@@ -32,26 +32,6 @@ function getChildNodesForVisitorKey(node: Readonly<TSESTree.Node>, key: string):
 }
 
 /**
- * Collect child nodes across all visitor keys for a node.
- * @param node - The node to inspect.
- * @param keys - The visitor keys to process.
- * @param index - The current visitor-key index.
- * @returns The traversable child nodes from the current index onward.
- */
-function getChildNodesForVisitorKeys(
-  node: Readonly<TSESTree.Node>,
-  keys: readonly string[],
-  index: number,
-): TSESTree.Node[] {
-  const key = keys[index];
-  if (key === undefined) {
-    return [];
-  }
-
-  return [...getChildNodesForVisitorKey(node, key), ...getChildNodesForVisitorKeys(node, keys, index + 1)];
-}
-
-/**
  * Collect AST nodes from a visitor-key array value.
  * @param value - The visitor-key array value to inspect.
  * @returns The matching AST nodes from the array.
@@ -86,5 +66,20 @@ export function getVisitorChildNodes(
   node: Readonly<TSESTree.Node>,
   visitorKeys: Readonly<VisitorKeyMap>,
 ): TSESTree.Node[] {
-  return getChildNodesForVisitorKeys(node, visitorKeys[node.type] ?? [], 0);
+  return Array.from(iterateChildNodesForVisitorKeys(node, visitorKeys[node.type] ?? []));
+}
+
+/**
+ * Iterate child nodes across all visitor keys for a node.
+ * @param node - The node to inspect.
+ * @param keys - The visitor keys to process.
+ * @returns The traversable child nodes in visitor-key order.
+ */
+function* iterateChildNodesForVisitorKeys(
+  node: Readonly<TSESTree.Node>,
+  keys: readonly string[],
+): Iterable<TSESTree.Node> {
+  for (const key of keys) {
+    yield* getChildNodesForVisitorKey(node, key);
+  }
 }

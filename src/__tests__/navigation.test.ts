@@ -149,6 +149,11 @@ function testIsInsideBoundaryAncestorArrayTypes(): void {
   it("should return false for an empty ancestor array", () => {
     expect(isInsideBoundary([], [], [AST_NODE_TYPES.Program])).toBe(false);
   });
+
+  it("should return false for a non-node array passed through the ancestor-array branch", () => {
+    const nonNodeAncestors = [{ type: AST_NODE_TYPES.Program }, { invalid: true }];
+    expect(Reflect.apply(isInsideBoundary, undefined, [nonNodeAncestors, [], [AST_NODE_TYPES.Program]])).toBe(false);
+  });
 }
 
 function testIsInsideBoundaryAncestors(): void {

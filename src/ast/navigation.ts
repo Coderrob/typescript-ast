@@ -3,7 +3,7 @@
  * parent links.
  */
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/types";
-import { isBlockStatement, isFunctionLike } from "../guards/nodes";
+import { isBlockStatement, isFunctionLike, isNodeLike } from "../guards/nodes";
 import { getNodeParent as getRuntimeNodeParent, getNodeParentOrNull } from "../internal/ast-runtime";
 
 type BoundaryTypes = ReadonlySet<AST_NODE_TYPES> | ReadonlyArray<AST_NODE_TYPES>;
@@ -275,5 +275,5 @@ function isInsideBoundaryForParentNode(
  * @returns True when the value is an AST node array.
  */
 function isNodeArray(value: unknown): value is ReadonlyArray<TSESTree.Node> {
-  return Array.isArray(value);
+  return Array.isArray(value) && value.every(isNodeLike);
 }

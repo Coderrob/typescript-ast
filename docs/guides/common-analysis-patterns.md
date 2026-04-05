@@ -12,10 +12,10 @@ if (node.type === "CallExpression" && isNamedCall(node, "console.error")) {
 }
 ```
 
-This only matches statically resolvable callees. For example:
+This only matches statically resolvable identifier and member-expression callees. For example:
 
 - `console.error()` resolves
-- `test.each()()` resolves to `test.each`
+- `test.each()()` does not match `isNamedCall(...)` because the call's callee is itself a `CallExpression`
 - `foo().bar()` does not resolve and returns `null` through path helpers
 
 ## Read A Callee Path
@@ -30,6 +30,12 @@ if (name === "logger.info") {
 ```
 
 If the callee cannot be resolved safely, the helper returns `null`.
+
+Examples:
+
+- `console.error()` resolves to `console.error`
+- `test.each()()` resolves to `test.each`
+- `foo().bar()` returns `null`
 
 ## Search Descendants Safely
 
