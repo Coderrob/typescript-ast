@@ -1,20 +1,26 @@
 import { TSESTree } from "@typescript-eslint/types";
 import { parse } from "@typescript-eslint/typescript-estree";
 import {
+  getAssignmentPatternIdentifier,
+  getFirstNonThisParameter,
+  getNamedParameterIdentifier,
+  getNamedParameterName,
+  getObjectDestructuredParameterTypeNode,
   getParameterTypeAnnotation,
   getParameterTypeNode,
-  getObjectDestructuredParameterTypeNode,
-  getFirstNonThisParameter,
-  isThisParameter,
+  getRestElementIdentifier,
   getTsParameterPropertyIdentifier,
+  isThisParameter,
 } from "../ast/parameters";
 import {
+  asAssignmentPattern,
   asClassDeclaration,
   asFunctionDeclaration,
   asFunctionExpression,
   asIdentifier,
   asMethodDefinition,
-} from "./helpers";
+  asRestElement,
+} from "./test-helpers";
 
 function parseClassCtor(code: string): TSESTree.FunctionExpression {
   const cls = asClassDeclaration(parse(code, { jsx: false }).body[0]);
@@ -44,6 +50,11 @@ function testGetObjectDestructuredParameterTypeNode(): void {
   it("should return type node from object destructured parameter", () => {
     expect(getObjectDestructuredParameterTypeNode(parseFn("function f({ x }: MyType) {}").params[0])).not.toBeNull();
   });
+  it("should return type node from defaulted object destructuring parameter", () => {
+    expect(
+      getObjectDestructuredParameterTypeNode(parseFn("function f({ x }: MyType = fallback) {}").params[0]),
+    ).not.toBeNull();
+  });
   it("should return null for non-object pattern parameter", () => {
     expect(getObjectDestructuredParameterTypeNode(parseFn("function f(x: string) {}").params[0])).toBeNull();
   });
@@ -61,8 +72,15 @@ function testGetParameterTypeAnnotation(): void {
     expect(annotation).not.toBeNull();
     expect(annotation?.type).toBe("TSTypeAnnotation");
   });
+  it("should return type annotation from assignment-pattern parameters", () => {
+    const annotation = getParameterTypeAnnotation(parseFn("function f(x: string = 'a') {}").params[0]);
+    expect(annotation?.type).toBe("TSTypeAnnotation");
+  });
   it("should return null for parameter without type annotation", () => {
     expect(getParameterTypeAnnotation(parseFn("function f(x) {}").params[0])).toBeNull();
+  });
+  it("should return null for assignment-pattern parameter whose left side has no typeAnnotation slot", () => {
+    expect(getParameterTypeAnnotation(parseFn("function f([x] = values) {}").params[0])).toBeNull();
   });
 }
 
@@ -87,6 +105,18 @@ function testGetTsParameterPropertyIdentifier(): void {
   it("should return null for regular parameter", () => {
     expect(getTsParameterPropertyIdentifier(parseFn("function f(x: string) {}").params[0])).toBeNull();
   });
+  it("should resolve identifier from assignment-pattern TSParameterProperty", () => {
+    const fn = parseClassCtor("class C { constructor(private x = 'a') {} }");
+    const ident = getTsParameterPropertyIdentifier(fn.params[0]);
+    expect(ident).not.toBeNull();
+    expect(ident?.name).toBe("x");
+  });
+  it("should return null for TSParameterProperty with non-identifier non-assignment parameter", () => {
+    const fn = parseClassCtor("class C { constructor(private x: string) {} }");
+    const objectPatternParam = parseFn("function f({ x }) {}").params[0];
+    Reflect.set(fn.params[0], "parameter", objectPatternParam);
+    expect(getTsParameterPropertyIdentifier(fn.params[0])).toBeNull();
+  });
 }
 
 function testIsThisParameter(): void {
@@ -98,13 +128,36 @@ function testIsThisParameter(): void {
   });
 }
 
-function testParameters(): void {
+function testNamedParameterHelpers(): void {
+  it("should resolve direct identifier parameters", () => {
+    const param = parseFn("function f(x: string) {}").params[0];
+    expect(getNamedParameterIdentifier(param)?.name).toBe("x");
+    expect(getNamedParameterName(param)).toBe("x");
+  });
+
+  it("should resolve assignment-pattern identifiers", () => {
+    const assignment = asAssignmentPattern(parseFn("function f(x = 1) {}").params[0]);
+    expect(getAssignmentPatternIdentifier(assignment)?.name).toBe("x");
+    expect(getNamedParameterIdentifier(assignment)?.name).toBe("x");
+    expect(getNamedParameterName(assignment)).toBe("x");
+  });
+  it("should resolve rest-element identifiers", () => {
+    const rest = asRestElement(parseFn("function f(...items) {}").params[0]);
+    expect(getRestElementIdentifier(rest)?.name).toBe("items");
+    expect(getNamedParameterIdentifier(rest)?.name).toBe("items");
+  });
+  it("should return null for destructured parameters", () => {
+    expect(getNamedParameterIdentifier(parseFn("function f({ x }) {}").params[0])).toBeNull();
+    expect(getNamedParameterName(parseFn("function f([x]) {}").params[0])).toBeNull();
+  });
+}
+
+describe("parameters", () => {
   describe("getFirstNonThisParameter", testGetFirstNonThisParameter);
   describe("getObjectDestructuredParameterTypeNode", testGetObjectDestructuredParameterTypeNode);
   describe("getParameterTypeAnnotation", testGetParameterTypeAnnotation);
   describe("getParameterTypeNode", testGetParameterTypeNode);
   describe("getTsParameterPropertyIdentifier", testGetTsParameterPropertyIdentifier);
+  describe("named parameter helpers", testNamedParameterHelpers);
   describe("isThisParameter", testIsThisParameter);
-}
-
-describe("parameters", testParameters);
+});

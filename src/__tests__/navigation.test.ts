@@ -3,18 +3,19 @@ import { parse } from "@typescript-eslint/typescript-estree";
 import {
   findAncestor,
   findEnclosingFunction,
-  isInsideBoundary,
-  getParentBlockStatement,
   getNextStatementInBlock,
+  getParentBlockStatement,
+  isInsideBoundary,
 } from "../ast/navigation";
 import { isFunctionLike } from "../guards/nodes";
 import {
   asBlockStatement,
   asExpressionStatement,
+  asForStatement,
   asFunctionDeclaration,
   asReturnStatement,
   attachParents,
-} from "./helpers";
+} from "./test-helpers";
 
 function parseFnBodyRet(code: string): TSESTree.Statement {
   const ast = parseProgWithParents(code);
@@ -63,7 +64,9 @@ function testFindEnclosingFunction(): void {
 
 function testGetNextStatementInBlock(): void {
   it("should return next statement", () => {
-    const block = asBlockStatement(asFunctionDeclaration(parseProg("function f() { const x = 1; return x; }").body[0]).body);
+    const block = asBlockStatement(
+      asFunctionDeclaration(parseProg("function f() { const x = 1; return x; }").body[0]).body,
+    );
     expect(getNextStatementInBlock(block, block.body[0])).toBe(block.body[1]);
   });
   it("should return null for last statement", () => {
@@ -105,14 +108,79 @@ function testIsInsideBoundary(): void {
   it("should return false for null", () => {
     expect(isInsideBoundary(null, [], [AST_NODE_TYPES.Program])).toBe(false);
   });
+  it("should prefer matches over stops when a type appears in both lists", () => {
+    const ret = parseFnBodyRet("function f() { return 1; }");
+    expect(isInsideBoundary(ret, [AST_NODE_TYPES.FunctionDeclaration], [AST_NODE_TYPES.FunctionDeclaration])).toBe(
+      true,
+    );
+  });
 }
 
-function testNavigation(): void {
+function testIsInsideBoundaryAncestorArrayPrecedence(): void {
+  it("should prefer matches over stops when an ancestor type appears in both arrays", () => {
+    const ast = parseProg("for (;;) { x; }");
+    const loop = asForStatement(ast.body[0]);
+    const block = asBlockStatement(loop.body);
+    const ancestors: ReadonlyArray<TSESTree.Node> = [ast, loop, block];
+
+    expect(isInsideBoundary(ancestors, [AST_NODE_TYPES.ForStatement], [AST_NODE_TYPES.ForStatement])).toBe(true);
+  });
+}
+
+function testIsInsideBoundaryAncestorArrayTypes(): void {
+  it("should support array boundary types for ancestor-array checks", () => {
+    const ast = parseProg("for (;;) { x; }");
+    const loop = asForStatement(ast.body[0]);
+    const block = asBlockStatement(loop.body);
+    const ancestors: ReadonlyArray<TSESTree.Node> = [ast, loop, block];
+
+    expect(isInsideBoundary(ancestors, [AST_NODE_TYPES.FunctionExpression], [AST_NODE_TYPES.ForStatement])).toBe(true);
+  });
+
+  it("should return false when stop boundary appears before any match", () => {
+    const ast = parseProg("for (;;) { x; }");
+    const loop = asForStatement(ast.body[0]);
+    const block = asBlockStatement(loop.body);
+    const ancestors: ReadonlyArray<TSESTree.Node> = [ast, loop, block];
+
+    expect(isInsideBoundary(ancestors, [AST_NODE_TYPES.ForStatement], [AST_NODE_TYPES.FunctionExpression])).toBe(false);
+  });
+
+  it("should return false for an empty ancestor array", () => {
+    expect(isInsideBoundary([], [], [AST_NODE_TYPES.Program])).toBe(false);
+  });
+
+  it("should return false for a non-node array passed through the ancestor-array branch", () => {
+    const nonNodeAncestors = [{ type: AST_NODE_TYPES.Program }, { invalid: true }];
+    expect(Reflect.apply(isInsideBoundary, undefined, [nonNodeAncestors, [], [AST_NODE_TYPES.Program]])).toBe(false);
+  });
+}
+
+function testIsInsideBoundaryAncestors(): void {
+  it("should support ancestor-array boundary checks", () => {
+    const ast = parseProgWithParents("for (;;) { x; }");
+    const loop = asForStatement(ast.body[0]);
+    const block = asBlockStatement(loop.body);
+    const ancestors = [ast, loop, block];
+
+    expect(
+      isInsideBoundary(ancestors, new Set([AST_NODE_TYPES.FunctionExpression]), new Set([AST_NODE_TYPES.ForStatement])),
+    ).toBe(true);
+  });
+
+  it("should return false for node traversal when no parent exists", () => {
+    const standaloneNode = parseProg("x;").body[0];
+    expect(isInsideBoundary(standaloneNode, [AST_NODE_TYPES.BlockStatement], [AST_NODE_TYPES.Program])).toBe(false);
+  });
+}
+
+describe("navigation", () => {
   describe("findAncestor", testFindAncestor);
   describe("findEnclosingFunction", testFindEnclosingFunction);
   describe("getNextStatementInBlock", testGetNextStatementInBlock);
   describe("getParentBlockStatement", testGetParentBlockStatement);
   describe("isInsideBoundary", testIsInsideBoundary);
-}
-
-describe("navigation", testNavigation);
+  describe("isInsideBoundary ancestors", testIsInsideBoundaryAncestors);
+  describe("isInsideBoundary ancestor array precedence", testIsInsideBoundaryAncestorArrayPrecedence);
+  describe("isInsideBoundary ancestor array types", testIsInsideBoundaryAncestorArrayTypes);
+});

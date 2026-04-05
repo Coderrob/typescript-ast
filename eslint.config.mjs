@@ -16,10 +16,24 @@ export default [
     },
     rules: {
       ...tsPlugin.configs["recommended"].rules,
+      complexity: ["error", 3],
     },
   },
   {
     files: ["src/**/*.ts"],
     ...zeroTolerance.configs.strict,
+  },
+  {
+    files: ["src/**/*.test.ts"],
+    rules: {
+      complexity: "off",
+      "zero-tolerance/max-function-lines": "off",
+    },
+  },
+  {
+    files: ["src/__tests__/helpers.ts"],
+    rules: {
+      complexity: "off",
+    },
   },
 ];

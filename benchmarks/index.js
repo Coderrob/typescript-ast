@@ -50,8 +50,8 @@ bench.run().then(() => {
         "Task Name": task.name,
         "ops/sec": r ? Math.round(r.throughput.mean).toLocaleString() : "N/A",
         "avg (ns)": r ? (r.latency.mean * 1e6).toFixed(0) : "N/A",
-        "Margin": r ? `\u00b1${r.latency.rme.toFixed(2)}%` : "N/A",
+        Margin: r ? `\u00b1${r.latency.rme.toFixed(2)}%` : "N/A",
       };
-    })
+    }),
   );
 });
