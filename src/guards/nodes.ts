@@ -81,19 +81,6 @@ export function isIdentifier(
 }
 
 /**
- * Type guard for a named Identifier node.
- * @param node - The node to check.
- * @param name - The expected name.
- * @returns True if the node is an Identifier with the given name.
- */
-export function isNamedIdentifier(
-  node: TSESTree.Node | null | undefined,
-  name: string
-): node is TSESTree.Identifier {
-  return isIdentifier(node) && node.name === name;
-}
-
-/**
  * Type guard for Literal nodes.
  * @param node - The node to check.
  * @returns True if the node is a Literal.
@@ -122,6 +109,19 @@ export function isMethodDefinition(
   node: TSESTree.Node | null | undefined
 ): node is TSESTree.MethodDefinition {
   return node?.type === AST_NODE_TYPES.MethodDefinition;
+}
+
+/**
+ * Type guard for a named Identifier node.
+ * @param node - The node to check.
+ * @param name - The expected name.
+ * @returns True if the node is an Identifier with the given name.
+ */
+export function isNamedIdentifier(
+  node: TSESTree.Node | null | undefined,
+  name: string
+): node is TSESTree.Identifier {
+  return isIdentifier(node) && node.name === name;
 }
 
 /**
@@ -167,6 +167,16 @@ export function isSwitchCase(
 }
 
 /**
+ * Check whether a file path matches common test-file conventions.
+ * @param filename - The file path to inspect.
+ * @returns True if the file is a test file.
+ */
+export function isTestFile(filename: string): boolean {
+  const normalizedFilename = filename.replace(/\\/g, "/").toLowerCase();
+  return normalizedFilename.includes(TEST_DIRECTORY_SEGMENT) || TEST_FILE_PATTERN.test(normalizedFilename);
+}
+
+/**
  * Type guard for ThisExpression nodes.
  * @param node - The node to check.
  * @returns True if the node is a ThisExpression.
@@ -178,17 +188,6 @@ export function isThisExpression(
 }
 
 /**
- * Type guard for TSEnumMember nodes.
- * @param node - The node to check.
- * @returns True if the node is a TSEnumMember.
- */
-export function isTSEnumMember(
-  node: TSESTree.Node | null | undefined
-): node is TSESTree.TSEnumMember {
-  return node?.type === AST_NODE_TYPES.TSEnumMember;
-}
-
-/**
  * Type guard for TSAsExpression nodes.
  * @param node - The node to check.
  * @returns True if the node is a TSAsExpression.
@@ -197,6 +196,17 @@ export function isTSAsExpression(
   node: TSESTree.Node | null | undefined
 ): node is TSESTree.TSAsExpression {
   return node?.type === AST_NODE_TYPES.TSAsExpression;
+}
+
+/**
+ * Type guard for TSEnumMember nodes.
+ * @param node - The node to check.
+ * @returns True if the node is a TSEnumMember.
+ */
+export function isTSEnumMember(
+  node: TSESTree.Node | null | undefined
+): node is TSESTree.TSEnumMember {
+  return node?.type === AST_NODE_TYPES.TSEnumMember;
 }
 
 /**
@@ -322,16 +332,6 @@ export function isVariableDeclarator(
   node: TSESTree.Node | null | undefined
 ): node is TSESTree.VariableDeclarator {
   return node?.type === AST_NODE_TYPES.VariableDeclarator;
-}
-
-/**
- * Check whether a file path matches common test-file conventions.
- * @param filename - The file path to inspect.
- * @returns True if the file is a test file.
- */
-export function isTestFile(filename: string): boolean {
-  const normalizedFilename = filename.replace(/\\/g, "/").toLowerCase();
-  return normalizedFilename.includes(TEST_DIRECTORY_SEGMENT) || TEST_FILE_PATTERN.test(normalizedFilename);
 }
 
 export const isBinaryExpressionNode = isBinaryExpression;

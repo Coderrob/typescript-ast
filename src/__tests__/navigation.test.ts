@@ -11,10 +11,16 @@ import { isFunctionLike } from "../guards/nodes";
 import {
   asBlockStatement,
   asExpressionStatement,
+  asForStatement,
   asFunctionDeclaration,
   asReturnStatement,
   attachParents,
 } from "./helpers";
+
+function parseFnBodyRet(code: string): TSESTree.Statement {
+  const ast = parseProgWithParents(code);
+  return asBlockStatement(asFunctionDeclaration(ast.body[0]).body).body[0];
+}
 
 function parseProg(code: string): TSESTree.Program {
   return parse(code, { jsx: false });
@@ -24,11 +30,6 @@ function parseProgWithParents(code: string): TSESTree.Program {
   const ast = parse(code, { jsx: false });
   attachParents(ast);
   return ast;
-}
-
-function parseFnBodyRet(code: string): TSESTree.Statement {
-  const ast = parseProgWithParents(code);
-  return asBlockStatement(asFunctionDeclaration(ast.body[0]).body).body[0];
 }
 
 function testFindAncestor(): void {
@@ -106,12 +107,32 @@ function testIsInsideBoundary(): void {
     const ret = parseFnBodyRet("function f() { return 1; }");
     expect(isInsideBoundary(ret, [AST_NODE_TYPES.BlockStatement], [AST_NODE_TYPES.FunctionDeclaration])).toBe(false);
   });
+  it("should return false for null", () => {
+    expect(isInsideBoundary(null, [], [AST_NODE_TYPES.Program])).toBe(false);
+  });
+}
+
+function testIsInsideBoundaryAncestorArrays(): void {
+  it("should support array boundary types for ancestor-array checks", () => {
+    const ast = parseProg("for (;;) {}");
+    const loop = asForStatement(ast.body[0]);
+    const ancestors: ReadonlyArray<TSESTree.Node> = [ast, loop, asBlockStatement(loop.body)];
+
+    expect(
+      isInsideBoundary(
+        ancestors,
+        [AST_NODE_TYPES.ForStatement],
+        [AST_NODE_TYPES.FunctionExpression]
+      )
+    ).toBe(true);
+  });
+}
+
+function testIsInsideBoundaryAncestors(): void {
   it("should support ancestor-array boundary checks", () => {
-    const ancestors = [
-      { type: AST_NODE_TYPES.Program },
-      { type: AST_NODE_TYPES.ForStatement },
-      { type: AST_NODE_TYPES.BlockStatement },
-    ] as TSESTree.Node[];
+    const ast = parseProg("for (;;) {}");
+    const loop = asForStatement(ast.body[0]);
+    const ancestors: ReadonlyArray<TSESTree.Node> = [ast, loop, asBlockStatement(loop.body)];
 
     expect(
       isInsideBoundary(
@@ -121,9 +142,6 @@ function testIsInsideBoundary(): void {
       )
     ).toBe(true);
   });
-  it("should return false for null", () => {
-    expect(isInsideBoundary(null, [], [AST_NODE_TYPES.Program])).toBe(false);
-  });
 }
 
 function testNavigation(): void {
@@ -132,6 +150,8 @@ function testNavigation(): void {
   describe("getNextStatementInBlock", testGetNextStatementInBlock);
   describe("getParentBlockStatement", testGetParentBlockStatement);
   describe("isInsideBoundary", testIsInsideBoundary);
+  describe("isInsideBoundary ancestors", testIsInsideBoundaryAncestors);
+  describe("isInsideBoundary ancestor arrays", testIsInsideBoundaryAncestorArrays);
 }
 
 describe("navigation", testNavigation);

@@ -19,6 +19,19 @@ function parseCallExpr(code: string): TSESTree.CallExpression {
   return asCallExpression(asExpressionStatement(ast.body[0]).expression);
 }
 
+function testCalls(): void {
+  describe("getCallArgument", testGetCallArgument);
+  describe("getCalleeNamePath", testGetCalleeNamePath);
+  describe("getFirstCallArgument", testGetFirstCallArgument);
+  describe("getStringLiteralCallArgument", testGetStringLiteralCallArgument);
+  describe("getMatchingCallMemberMethodName", testGetMatchingCallMemberMethodName);
+  describe("hasIdentifierCallee", testHasIdentifierCallee);
+  describe("hasCallCalleeNamePath", testHasCallCalleeNamePath);
+  describe("hasMemberCallee", testHasMemberCallee);
+  describe("isNamedCall", testIsNamedCall);
+  describe("isNamedMemberCall", testIsNamedMemberCall);
+}
+
 function testGetCallArgument(): void {
   it("should return the argument at the requested index", () => {
     expect(getCallArgument(parseCallExpr('foo("a", "b")'), 1)?.type).toBe("Literal");
@@ -58,6 +71,15 @@ function testGetFirstCallArgument(): void {
   });
 }
 
+function testGetMatchingCallMemberMethodName(): void {
+  it("should return a matched method name", () => {
+    expect(getMatchingCallMemberMethodName(parseCallExpr("items.push()"), new Set(["push"]))).toBe("push");
+  });
+  it("should return null when no method name matches", () => {
+    expect(getMatchingCallMemberMethodName(parseCallExpr("items.map()"), new Set(["push"]))).toBeNull();
+  });
+}
+
 function testGetStringLiteralCallArgument(): void {
   it("should return string value at index", () => {
     expect(getStringLiteralCallArgument(parseCallExpr('foo("hello")'), 0)).toBe("hello");
@@ -73,12 +95,12 @@ function testGetStringLiteralCallArgument(): void {
   });
 }
 
-function testGetMatchingCallMemberMethodName(): void {
-  it("should return a matched method name", () => {
-    expect(getMatchingCallMemberMethodName(parseCallExpr("items.push()"), new Set(["push"]))).toBe("push");
+function testHasCallCalleeNamePath(): void {
+  it("should return true for matching callee segments", () => {
+    expect(hasCallCalleeNamePath(parseCallExpr("foo.bar()"), ["foo", "bar"])).toBe(true);
   });
-  it("should return null when no method name matches", () => {
-    expect(getMatchingCallMemberMethodName(parseCallExpr("items.map()"), new Set(["push"]))).toBeNull();
+  it("should return false for non-matching callee segments", () => {
+    expect(hasCallCalleeNamePath(parseCallExpr("foo.bar()"), ["foo", "baz"])).toBe(false);
   });
 }
 
@@ -91,15 +113,6 @@ function testHasIdentifierCallee(): void {
   });
   it("should return false for member expression callee", () => {
     expect(hasIdentifierCallee(parseCallExpr("foo.bar()"), "foo")).toBe(false);
-  });
-}
-
-function testHasCallCalleeNamePath(): void {
-  it("should return true for matching callee segments", () => {
-    expect(hasCallCalleeNamePath(parseCallExpr("foo.bar()"), ["foo", "bar"])).toBe(true);
-  });
-  it("should return false for non-matching callee segments", () => {
-    expect(hasCallCalleeNamePath(parseCallExpr("foo.bar()"), ["foo", "baz"])).toBe(false);
   });
 }
 
@@ -137,19 +150,6 @@ function testIsNamedMemberCall(): void {
   it("should return false for identifier callee", () => {
     expect(isNamedMemberCall(parseCallExpr("foo()"), "foo", "bar")).toBe(false);
   });
-}
-
-function testCalls(): void {
-  describe("getCallArgument", testGetCallArgument);
-  describe("getCalleeNamePath", testGetCalleeNamePath);
-  describe("getFirstCallArgument", testGetFirstCallArgument);
-  describe("getStringLiteralCallArgument", testGetStringLiteralCallArgument);
-  describe("getMatchingCallMemberMethodName", testGetMatchingCallMemberMethodName);
-  describe("hasIdentifierCallee", testHasIdentifierCallee);
-  describe("hasCallCalleeNamePath", testHasCallCalleeNamePath);
-  describe("hasMemberCallee", testHasMemberCallee);
-  describe("isNamedCall", testIsNamedCall);
-  describe("isNamedMemberCall", testIsNamedMemberCall);
 }
 
 describe("calls", testCalls);

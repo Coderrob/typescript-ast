@@ -11,6 +11,7 @@ import {
 import { isPlainObject, isString } from "../guards/values";
 
 const ANONYMOUS_FUNCTION_NAME = "<anonymous>";
+const LITERAL_NODE_TYPE = "Literal";
 
 type MemberExpressionLike = {
   readonly computed: boolean;
@@ -80,7 +81,7 @@ export function getIdentifierName(node: Readonly<TSESTree.Node> | null | undefin
 export function getLiteralStringValue(
   node: Readonly<{ type: string; value?: unknown }> | null | undefined
 ): string | null {
-  return node?.type === "Literal" && isString(node.value) ? node.value : null;
+  return node?.type === LITERAL_NODE_TYPE && isString(node.value) ? node.value : null;
 }
 
 /**
@@ -90,7 +91,7 @@ export function getLiteralStringValue(
  * @returns The matched property name and replacement, or null.
  */
 export function getMappedMemberPropertyName(
-  node: MemberExpressionLike,
+  node: Readonly<MemberExpressionLike>,
   replacements: Readonly<Record<string, string | undefined>>
 ): { name: string; replacement: string } | null {
   const name = getMemberPropertyName(node);
@@ -108,7 +109,7 @@ export function getMappedMemberPropertyName(
  * @returns The property name, or null.
  */
 export function getMemberPropertyName(
-  node: MemberExpressionLike
+  node: Readonly<MemberExpressionLike>
 ): string | null {
   if (!node.computed) {
     return isString(node.property.name) ? node.property.name : null;
@@ -127,6 +128,16 @@ export function getOptionMaxValue(option: unknown): unknown {
 }
 
 /**
+ * Read a runtime parent reference from a node.
+ * @param node - The node whose parent should be read.
+ * @returns The runtime parent node, or null.
+ */
+function getRuntimeParent(node: Readonly<TSESTree.Node>): TSESTree.Node | null {
+  const parent: unknown = Reflect.get(node, "parent");
+  return isNodeLike(parent) ? parent : null;
+}
+
+/**
  * Collect direct child AST nodes using visitor keys.
  * @param node - The node to inspect.
  * @param sourceCode - An object exposing visitor keys.
@@ -134,21 +145,30 @@ export function getOptionMaxValue(option: unknown): unknown {
  */
 export function getVisitorChildNodes(
   node: Readonly<TSESTree.Node>,
-  sourceCode: SourceCodeVisitorKeysLike
+  sourceCode: Readonly<SourceCodeVisitorKeysLike>
 ): ReadonlyArray<TSESTree.Node> {
-  const childNodes: TSESTree.Node[] = [];
   const visitorKeys = sourceCode.visitorKeys[node.type] ?? [];
-  for (const key of visitorKeys) {
-    const value = Reflect.get(node, key);
-    if (Array.isArray(value)) {
-      childNodes.push(...value.filter(isNodeLike));
-      continue;
-    }
-    if (isNodeLike(value)) {
-      childNodes.push(value);
-    }
+  /**
+   * Resolve child nodes for one visitor key on the current node.
+   * @param key - The visitor key to read from the node.
+   * @returns The child nodes exposed by that visitor key.
+   */
+  function getVisitorNodesForKey(key: string): readonly TSESTree.Node[] {
+    return getVisitorKeyNodes(Reflect.get(node, key));
   }
-  return childNodes;
+  return visitorKeys.flatMap(getVisitorNodesForKey);
+}
+
+/**
+ * Normalize one visitor-key value into AST child nodes.
+ * @param value - The visitor-key value to inspect.
+ * @returns The child AST nodes for that value.
+ */
+function getVisitorKeyNodes(value: unknown): readonly TSESTree.Node[] {
+  if (Array.isArray(value)) {
+    return value.filter(isNodeLike);
+  }
+  return isNodeLike(value) ? [value] : [];
 }
 
 /**
@@ -163,9 +183,4 @@ export function resolveFunctionName(node: Readonly<FunctionNode>): string {
     getFunctionMethodName(node) ??
     ANONYMOUS_FUNCTION_NAME
   );
-}
-
-function getRuntimeParent(node: Readonly<TSESTree.Node>): TSESTree.Node | null {
-  const parent: unknown = Reflect.get(node, "parent");
-  return isNodeLike(parent) ? parent : null;
 }

@@ -7,7 +7,16 @@ import {
   getReturnStatement,
   getSingleReturnStatement,
 } from "../ast/statements";
-import { asBlockStatement, asFunctionDeclaration, attachParents } from "./helpers";
+import {
+  asBlockStatement,
+  asExpressionStatement,
+  asFunctionDeclaration,
+  attachParents,
+} from "./helpers";
+
+function parseExpr(code: string): TSESTree.Expression {
+  return asExpressionStatement(parseProg(`${code};`).body[0]).expression;
+}
 
 function parseFn(code: string): TSESTree.FunctionDeclaration {
   return asFunctionDeclaration(parse(code, { jsx: false }).body[0]);
@@ -21,20 +30,6 @@ function parseProgWithParents(code: string): TSESTree.Program {
   const ast = parse(code, { jsx: false });
   attachParents(ast);
   return ast;
-}
-
-function parseExpr(code: string): TSESTree.Expression {
-  return (parseProg(`${code};`).body[0] as TSESTree.ExpressionStatement).expression;
-}
-
-function testGetBooleanLiteralValue(): void {
-  it("should return boolean values from boolean literals", () => {
-    expect(getBooleanLiteralValue(parseExpr("true"))).toBe(true);
-    expect(getBooleanLiteralValue(parseExpr("false"))).toBe(false);
-  });
-  it("should return null for non-boolean expressions", () => {
-    expect(getBooleanLiteralValue(parseExpr("1"))).toBeNull();
-  });
 }
 
 function testGetBooleanLiteralReturnValue(): void {
@@ -52,6 +47,16 @@ function testGetBooleanLiteralReturnValue(): void {
   });
   it("should return null for non-return statement", () => {
     expect(getBooleanLiteralReturnValue(parseProg("const x = 1;").body[0])).toBeNull();
+  });
+}
+
+function testGetBooleanLiteralValue(): void {
+  it("should return boolean values from boolean literals", () => {
+    expect(getBooleanLiteralValue(parseExpr("true"))).toBe(true);
+    expect(getBooleanLiteralValue(parseExpr("false"))).toBe(false);
+  });
+  it("should return null for non-boolean expressions", () => {
+    expect(getBooleanLiteralValue(parseExpr("1"))).toBeNull();
   });
 }
 

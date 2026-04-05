@@ -99,6 +99,16 @@ function testIsNamedTypeReference(): void {
   });
 }
 
+function testTypes(): void {
+  describe("getFirstTypeArgument", testGetFirstTypeArgument);
+  describe("getTypeReferenceName", testGetTypeReferenceName);
+  describe("hasAllReadonlyPropertyMembers", testHasAllReadonlyPropertyMembers);
+  describe("hasNamedTypeReferenceWithTypeArguments", testHasNamedTypeReferenceWithTypeArguments);
+  describe("hasTypeArguments", testHasTypeArguments);
+  describe("isNamedTypeReference", testIsNamedTypeReference);
+  describe("unwrapTsExpression", testUnwrapTsExpression);
+}
+
 function testUnwrapTsExpression(): void {
   it("should unwrap TSAsExpression", () => {
     const node = asTSAsExpression(parseExpr("x as string"));
@@ -115,16 +125,6 @@ function testUnwrapTsExpression(): void {
     const node = parseExpr("x");
     expect(unwrapTsExpression(node)).toBe(node);
   });
-}
-
-function testTypes(): void {
-  describe("getFirstTypeArgument", testGetFirstTypeArgument);
-  describe("getTypeReferenceName", testGetTypeReferenceName);
-  describe("hasAllReadonlyPropertyMembers", testHasAllReadonlyPropertyMembers);
-  describe("hasNamedTypeReferenceWithTypeArguments", testHasNamedTypeReferenceWithTypeArguments);
-  describe("hasTypeArguments", testHasTypeArguments);
-  describe("isNamedTypeReference", testIsNamedTypeReference);
-  describe("unwrapTsExpression", testUnwrapTsExpression);
 }
 
 describe("types", testTypes);

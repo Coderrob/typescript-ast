@@ -31,6 +31,35 @@ export function getFirstNonThisParameter(
 }
 
 /**
+ * Get the identifier bound by a directly nameable parameter.
+ * @param param - The parameter to inspect.
+ * @returns The bound identifier, or null.
+ */
+export function getNamedParameterIdentifier(
+  param: Readonly<TSESTree.Parameter>
+): TSESTree.Identifier | null {
+  if (isIdentifier(param)) {
+    return param;
+  }
+  if (param.type === AST_NODE_TYPES.AssignmentPattern) {
+    return getAssignmentPatternIdentifier(param);
+  }
+  if (param.type === AST_NODE_TYPES.RestElement) {
+    return getRestElementIdentifier(param);
+  }
+  return null;
+}
+
+/**
+ * Get the name bound by a directly nameable parameter.
+ * @param param - The parameter to inspect.
+ * @returns The parameter name, or null.
+ */
+export function getNamedParameterName(param: Readonly<TSESTree.Parameter>): string | null {
+  return getNamedParameterIdentifier(param)?.name ?? null;
+}
+
+/**
  * Get the type node from a destructured (ObjectPattern) parameter.
  * @param param - The function parameter to inspect.
  * @returns The type node if the parameter destructures an object and is typed.
@@ -78,6 +107,17 @@ export function getParameterTypeNode(
 }
 
 /**
+ * Get the identifier bound by a rest parameter.
+ * @param param - The rest parameter to inspect.
+ * @returns The bound identifier, or null.
+ */
+export function getRestElementIdentifier(
+  param: Readonly<TSESTree.RestElement>
+): TSESTree.Identifier | null {
+  return isIdentifier(param.argument) ? param.argument : null;
+}
+
+/**
  * Get the identifier from a TSParameterProperty.
  * @param param - The function parameter to inspect.
  * @returns The identifier if the parameter is a TSParameterProperty with an identifier, otherwise null.
@@ -94,46 +134,6 @@ export function getTsParameterPropertyIdentifier(
   return param.parameter.type === AST_NODE_TYPES.AssignmentPattern
     ? getAssignmentPatternIdentifier(param.parameter)
     : null;
-}
-
-/**
- * Get the identifier bound by a rest parameter.
- * @param param - The rest parameter to inspect.
- * @returns The bound identifier, or null.
- */
-export function getRestElementIdentifier(
-  param: Readonly<TSESTree.RestElement>
-): TSESTree.Identifier | null {
-  return isIdentifier(param.argument) ? param.argument : null;
-}
-
-/**
- * Get the identifier bound by a directly nameable parameter.
- * @param param - The parameter to inspect.
- * @returns The bound identifier, or null.
- */
-export function getNamedParameterIdentifier(
-  param: Readonly<TSESTree.Parameter>
-): TSESTree.Identifier | null {
-  if (isIdentifier(param)) {
-    return param;
-  }
-  if (param.type === AST_NODE_TYPES.AssignmentPattern) {
-    return getAssignmentPatternIdentifier(param);
-  }
-  if (param.type === AST_NODE_TYPES.RestElement) {
-    return getRestElementIdentifier(param);
-  }
-  return null;
-}
-
-/**
- * Get the name bound by a directly nameable parameter.
- * @param param - The parameter to inspect.
- * @returns The parameter name, or null.
- */
-export function getNamedParameterName(param: Readonly<TSESTree.Parameter>): string | null {
-  return getNamedParameterIdentifier(param)?.name ?? null;
 }
 
 /**

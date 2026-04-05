@@ -19,6 +19,8 @@
     "build": "tsc",
     "test": "vitest run",
     "lint": "eslint src --ext .ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "publint": "publint",
     "benchmark": "npm run build && node benchmarks/index.js"

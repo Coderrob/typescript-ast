@@ -7,6 +7,7 @@ type SourceCodeLike = {
 };
 
 const JSDOC_BLOCK_MARKER = "*";
+const BLOCK_COMMENT_TYPE = "Block";
 
 const PARENT_OWNED_TARGET_TYPES = new Set<AST_NODE_TYPES>([
   AST_NODE_TYPES.ExportDefaultDeclaration,
@@ -55,6 +56,16 @@ export function getParentOwnedTargetNode(node: Readonly<FunctionNode>): TSESTree
 }
 
 /**
+ * Read a runtime parent reference from a node.
+ * @param node - The node whose parent should be read.
+ * @returns The runtime parent node, or null.
+ */
+function getRuntimeParent(node: Readonly<TSESTree.Node>): TSESTree.Node | null {
+  const parent: unknown = Reflect.get(node, "parent");
+  return isNodeLike(parent) ? parent : null;
+}
+
+/**
  * Get the node that should own the JSDoc comment for a function.
  * @param node - The function-like node to inspect.
  * @returns The JSDoc owner node.
@@ -94,7 +105,7 @@ export function getVariableOwnedTargetNode(node: Readonly<FunctionNode>): TSESTr
  * @returns True when the comment is a JSDoc block.
  */
 export function isJsdocBlockComment(comment: Readonly<TSESTree.Comment>): boolean {
-  return comment.type === "Block" && comment.value.startsWith(JSDOC_BLOCK_MARKER);
+  return comment.type === BLOCK_COMMENT_TYPE && comment.value.startsWith(JSDOC_BLOCK_MARKER);
 }
 
 /**
@@ -102,7 +113,7 @@ export function isJsdocBlockComment(comment: Readonly<TSESTree.Comment>): boolea
  * @param type - The AST node type to inspect.
  * @returns True when the type owns JSDoc placement.
  */
-export function isParentOwnedTargetType(type: AST_NODE_TYPES): boolean {
+export function isParentOwnedTargetType(type: Readonly<AST_NODE_TYPES>): boolean {
   return PARENT_OWNED_TARGET_TYPES.has(type);
 }
 
@@ -119,9 +130,4 @@ export function isStandaloneLineTarget(
   const lineText = sourceCode.lines[node.loc.start.line - 1] ?? "";
   const prefix = lineText.slice(0, node.loc.start.column);
   return prefix.trim().length === 0;
-}
-
-function getRuntimeParent(node: Readonly<TSESTree.Node>): TSESTree.Node | null {
-  const parent: unknown = Reflect.get(node, "parent");
-  return isNodeLike(parent) ? parent : null;
 }

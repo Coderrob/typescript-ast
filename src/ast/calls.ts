@@ -31,6 +31,27 @@ export function getCalleeNamePath(callee: Readonly<TSESTree.Node>): string | nul
 }
 
 /**
+ * Get the static name segments for a callee expression.
+ * @param callee - The callee expression to inspect.
+ * @returns The ordered callee segments, or null if unresolved.
+ */
+function getCalleeNameSegments(callee: Readonly<TSESTree.Node>): string[] | null {
+  if (isIdentifier(callee)) {
+    return [callee.name];
+  }
+  if (isCallExpression(callee)) {
+    return getCalleeNameSegments(callee.callee);
+  }
+  if (!isMemberExpression(callee)) {
+    return null;
+  }
+
+  const propertyName = getMemberPropertyName(callee);
+  const objectPath = getCalleeNameSegments(callee.object);
+  return propertyName === null || objectPath === null ? null : [...objectPath, propertyName];
+}
+
+/**
  * Get the first argument of a call expression.
  * @param node - The call expression node.
  * @returns The first argument node, or null if none.
@@ -39,6 +60,20 @@ export function getFirstCallArgument(
   node: Readonly<TSESTree.CallExpression>
 ): TSESTree.CallExpressionArgument | null {
   return getCallArgument(node, 0);
+}
+
+/**
+ * Get a matching member method name when the callee is a member call.
+ * @param node - The call expression to inspect.
+ * @param names - The allowed method names.
+ * @returns The matched method name, or null.
+ */
+export function getMatchingCallMemberMethodName(
+  node: Readonly<TSESTree.CallExpression>,
+  names: Readonly<ReadonlySet<string>>
+): string | null {
+  const methodName = getCallMemberMethodName(node);
+  return methodName !== null && names.has(methodName) ? methodName : null;
 }
 
 /**
@@ -59,17 +94,17 @@ export function getStringLiteralCallArgument(
 }
 
 /**
- * Get a matching member method name when the callee is a member call.
+ * Check whether a call expression matches a resolved callee path.
  * @param node - The call expression to inspect.
- * @param names - The allowed method names.
- * @returns The matched method name, or null.
+ * @param expectedPath - The expected callee path segments.
+ * @returns True when the callee path matches exactly.
  */
-export function getMatchingCallMemberMethodName(
+export function hasCallCalleeNamePath(
   node: Readonly<TSESTree.CallExpression>,
-  names: ReadonlySet<string>
-): string | null {
-  const methodName = getCallMemberMethodName(node);
-  return methodName !== null && names.has(methodName) ? methodName : null;
+  expectedPath: ReadonlyArray<string>
+): boolean {
+  const actualPath = getCalleeNameSegments(node.callee);
+  return actualPath !== null && hasMatchingNamePath(actualPath, expectedPath);
 }
 
 /**
@@ -86,29 +121,31 @@ export function hasIdentifierCallee(
 }
 
 /**
+ * Check whether two callee paths match exactly.
+ * @param actualPath - The resolved callee path.
+ * @param expectedPath - The expected callee path.
+ * @returns True when both paths match by segment and length.
+ */
+function hasMatchingNamePath(
+  actualPath: ReadonlyArray<string>,
+  expectedPath: ReadonlyArray<string>
+): boolean {
+  if (actualPath.length !== expectedPath.length) {
+    return false;
+  }
+  return actualPath.length === 0
+    ? true
+    : actualPath[0] === expectedPath[0] &&
+        hasMatchingNamePath(actualPath.slice(1), expectedPath.slice(1));
+}
+
+/**
  * Check if a call expression has a MemberExpression callee.
  * @param node - The call expression node.
  * @returns True if the callee is a MemberExpression.
  */
 export function hasMemberCallee(node: Readonly<TSESTree.CallExpression>): boolean {
   return isMemberExpression(node.callee);
-}
-
-/**
- * Check whether a call expression matches a resolved callee path.
- * @param node - The call expression to inspect.
- * @param expectedPath - The expected callee path segments.
- * @returns True when the callee path matches exactly.
- */
-export function hasCallCalleeNamePath(
-  node: Readonly<TSESTree.CallExpression>,
-  expectedPath: ReadonlyArray<string>
-): boolean {
-  const actualPath = getCalleeNameSegments(node.callee);
-  if (actualPath === null || actualPath.length !== expectedPath.length) {
-    return false;
-  }
-  return actualPath.every((segment, index) => segment === expectedPath[index]);
 }
 
 /**
@@ -140,20 +177,4 @@ export function isNamedMemberCall(
   const prop = node.callee.property;
   return isIdentifier(obj) && obj.name === objectName &&
     isIdentifier(prop) && prop.name === propertyName;
-}
-
-function getCalleeNameSegments(callee: Readonly<TSESTree.Node>): string[] | null {
-  if (isIdentifier(callee)) {
-    return [callee.name];
-  }
-  if (isCallExpression(callee)) {
-    return getCalleeNameSegments(callee.callee);
-  }
-  if (!isMemberExpression(callee)) {
-    return null;
-  }
-
-  const propertyName = getMemberPropertyName(callee);
-  const objectPath = getCalleeNameSegments(callee.object);
-  return propertyName === null || objectPath === null ? null : [...objectPath, propertyName];
 }

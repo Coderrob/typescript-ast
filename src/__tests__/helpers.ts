@@ -1,6 +1,11 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/types";
 import { simpleTraverse } from "@typescript-eslint/typescript-estree";
 
+export function asAssignmentPattern(node: Readonly<TSESTree.Node> | null): TSESTree.AssignmentPattern {
+  if (node?.type === AST_NODE_TYPES.AssignmentPattern) return node;
+  throw new Error(`Expected AssignmentPattern, got ${node?.type ?? "null"}`);
+}
+
 export function asBlockStatement(node: Readonly<TSESTree.Node> | null): TSESTree.BlockStatement {
   if (node?.type === AST_NODE_TYPES.BlockStatement) return node;
   throw new Error(`Expected BlockStatement, got ${node?.type ?? "null"}`);
@@ -21,6 +26,11 @@ export function asExpressionStatement(node: Readonly<TSESTree.Node> | null): TSE
   throw new Error(`Expected ExpressionStatement, got ${node?.type ?? "null"}`);
 }
 
+export function asForStatement(node: Readonly<TSESTree.Node> | null): TSESTree.ForStatement {
+  if (node?.type === AST_NODE_TYPES.ForStatement) return node;
+  throw new Error(`Expected ForStatement, got ${node?.type ?? "null"}`);
+}
+
 export function asFunctionDeclaration(node: Readonly<TSESTree.Node> | null): TSESTree.FunctionDeclaration {
   if (node?.type === AST_NODE_TYPES.FunctionDeclaration) return node;
   throw new Error(`Expected FunctionDeclaration, got ${node?.type ?? "null"}`);
@@ -39,6 +49,11 @@ export function asIdentifier(node: Readonly<TSESTree.Node> | null): TSESTree.Ide
 export function asMethodDefinition(node: Readonly<TSESTree.Node> | null): TSESTree.MethodDefinition {
   if (node?.type === AST_NODE_TYPES.MethodDefinition) return node;
   throw new Error(`Expected MethodDefinition, got ${node?.type ?? "null"}`);
+}
+
+export function asRestElement(node: Readonly<TSESTree.Node> | null): TSESTree.RestElement {
+  if (node?.type === AST_NODE_TYPES.RestElement) return node;
+  throw new Error(`Expected RestElement, got ${node?.type ?? "null"}`);
 }
 
 export function asReturnStatement(node: Readonly<TSESTree.Node> | null): TSESTree.ReturnStatement {

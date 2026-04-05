@@ -5,7 +5,7 @@ import {
   findDescendant,
   hasMatchingDescendant,
   hasMatchingDescendantUntil,
-  someDescendant,
+  hasSomeDescendant,
 } from "../ast/search";
 import { isCallExpression, isIdentifier } from "../guards/nodes";
 import { asIdentifier } from "./helpers";
@@ -70,13 +70,13 @@ function testHasMatchingDescendantUntil(): void {
   });
 }
 
-function testSomeDescendant(): void {
+function testHasSomeDescendant(): void {
   it("should return true when a descendant matches", () => {
-    expect(someDescendant(parse("foo()", { jsx: false }), keys, isCallExpression)).toBe(true);
+    expect(hasSomeDescendant(parse("foo()", { jsx: false }), keys, isCallExpression)).toBe(true);
   });
   it("should respect the stop predicate", () => {
     expect(
-      someDescendant(
+      hasSomeDescendant(
         parse("foo()", { jsx: false }),
         keys,
         isCallExpression,
@@ -90,7 +90,7 @@ function testSearch(): void {
   describe("findDescendant", testFindDescendant);
   describe("hasMatchingDescendant", testHasMatchingDescendant);
   describe("hasMatchingDescendantUntil", testHasMatchingDescendantUntil);
-  describe("someDescendant", testSomeDescendant);
+  describe("hasSomeDescendant", testHasSomeDescendant);
 }
 
 describe("search", testSearch);
