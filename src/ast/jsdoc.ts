@@ -1,9 +1,5 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/types";
-import {
-  FunctionNode,
-  isNodeLike,
-  isVariableDeclarator,
-} from "../guards/nodes";
+import { FunctionNode, isNodeLike, isVariableDeclarator } from "../guards/nodes";
 
 type SourceCodeLike = {
   readonly lines: readonly string[];
@@ -31,9 +27,7 @@ export function getJsdocComment(
   sourceCode: Readonly<SourceCodeLike>,
   node: Readonly<TSESTree.Node>,
 ): TSESTree.Comment | null {
-  const jsdocComments = sourceCode
-    .getCommentsBefore(node)
-    .filter(isJsdocBlockComment);
+  const jsdocComments = sourceCode.getCommentsBefore(node).filter(isJsdocBlockComment);
   return jsdocComments[jsdocComments.length - 1] ?? null;
 }
 
@@ -43,10 +37,7 @@ export function getJsdocComment(
  * @param node - The node whose line should be inspected.
  * @returns The indentation prefix, or an empty string when location data is unavailable.
  */
-export function getLineIndentation(
-  sourceCode: Readonly<SourceCodeLike>,
-  node: Readonly<TSESTree.Node>,
-): string {
+export function getLineIndentation(sourceCode: Readonly<SourceCodeLike>, node: Readonly<TSESTree.Node>): string {
   const start = getNodeStart(node);
   if (start === null) {
     return "";
@@ -69,13 +60,9 @@ function getNodeStart(node: Readonly<TSESTree.Node>): TSESTree.Position | null {
  * @param node - The function-like node to inspect.
  * @returns The owning parent node, or null.
  */
-export function getParentOwnedTargetNode(
-  node: Readonly<FunctionNode>,
-): TSESTree.Node | null {
+export function getParentOwnedTargetNode(node: Readonly<FunctionNode>): TSESTree.Node | null {
   const parent = getRuntimeParent(node);
-  return parent !== null && isParentOwnedTargetType(parent.type)
-    ? parent
-    : null;
+  return parent !== null && isParentOwnedTargetType(parent.type) ? parent : null;
 }
 
 /**
@@ -94,9 +81,22 @@ function getRuntimeParent(node: Readonly<TSESTree.Node>): TSESTree.Node | null {
  * @returns The JSDoc owner node.
  */
 export function getTargetNode(node: Readonly<FunctionNode>): TSESTree.Node {
-  return (
-    getParentOwnedTargetNode(node) ?? getVariableOwnedTargetNode(node) ?? node
-  );
+  return getParentOwnedTargetNode(node) ?? getVariableOwnedTargetNode(node) ?? node;
+}
+
+/**
+ * Resolve the owner node for a variable declarator that initializes a function.
+ * @param declarator - The variable declarator owning the function initializer.
+ * @returns The owning node for JSDoc placement.
+ */
+function getVariableOwnedTargetFromDeclarator(declarator: Readonly<TSESTree.VariableDeclarator>): TSESTree.Node {
+  const declaration = getRuntimeParent(declarator);
+  if (!isSingleVariableDeclaration(declaration)) {
+    return declarator;
+  }
+
+  const declarationParent = getRuntimeParent(declaration);
+  return isExportNamedDeclarationNode(declarationParent) ? declarationParent : declaration;
 }
 
 /**
@@ -104,26 +104,22 @@ export function getTargetNode(node: Readonly<FunctionNode>): TSESTree.Node {
  * @param node - The function-like node to inspect.
  * @returns The owning declaration node, declarator, or null.
  */
-export function getVariableOwnedTargetNode(
-  node: Readonly<FunctionNode>,
-): TSESTree.Node | null {
+export function getVariableOwnedTargetNode(node: Readonly<FunctionNode>): TSESTree.Node | null {
   const parent = getRuntimeParent(node);
   if (!isVariableDeclarator(parent)) {
     return null;
   }
 
-  const declaration = getRuntimeParent(parent);
-  if (declaration?.type !== AST_NODE_TYPES.VariableDeclaration) {
-    return parent;
-  }
-  if (declaration.declarations.length !== 1) {
-    return parent;
-  }
+  return getVariableOwnedTargetFromDeclarator(parent);
+}
 
-  const declarationParent = getRuntimeParent(declaration);
-  return declarationParent?.type === AST_NODE_TYPES.ExportNamedDeclaration
-    ? declarationParent
-    : declaration;
+/**
+ * Check whether a node is an ExportNamedDeclaration.
+ * @param node - The node to inspect.
+ * @returns True when the node is ExportNamedDeclaration.
+ */
+function isExportNamedDeclarationNode(node: Readonly<TSESTree.Node> | null): node is TSESTree.ExportNamedDeclaration {
+  return node?.type === AST_NODE_TYPES.ExportNamedDeclaration;
 }
 
 /**
@@ -131,13 +127,8 @@ export function getVariableOwnedTargetNode(
  * @param comment - The comment to inspect.
  * @returns True when the comment is a JSDoc block.
  */
-export function isJsdocBlockComment(
-  comment: Readonly<TSESTree.Comment>,
-): boolean {
-  return (
-    comment.type === BLOCK_COMMENT_TYPE &&
-    comment.value.startsWith(JSDOC_BLOCK_MARKER)
-  );
+export function isJsdocBlockComment(comment: Readonly<TSESTree.Comment>): boolean {
+  return comment.type === BLOCK_COMMENT_TYPE && comment.value.startsWith(JSDOC_BLOCK_MARKER);
 }
 
 /**
@@ -145,10 +136,17 @@ export function isJsdocBlockComment(
  * @param type - The AST node type to inspect.
  * @returns True when the type owns JSDoc placement.
  */
-export function isParentOwnedTargetType(
-  type: Readonly<AST_NODE_TYPES>,
-): boolean {
+export function isParentOwnedTargetType(type: Readonly<AST_NODE_TYPES>): boolean {
   return PARENT_OWNED_TARGET_TYPES.has(type);
+}
+
+/**
+ * Check whether a node is a single-declarator variable declaration.
+ * @param node - The node to inspect.
+ * @returns True when node is a VariableDeclaration with one declarator.
+ */
+function isSingleVariableDeclaration(node: Readonly<TSESTree.Node> | null): node is TSESTree.VariableDeclaration {
+  return node?.type === AST_NODE_TYPES.VariableDeclaration && node.declarations.length === 1;
 }
 
 /**
@@ -157,10 +155,7 @@ export function isParentOwnedTargetType(
  * @param node - The node to inspect.
  * @returns True when the node starts on a standalone line and location data is available.
  */
-export function isStandaloneLineTarget(
-  sourceCode: Readonly<SourceCodeLike>,
-  node: Readonly<TSESTree.Node>,
-): boolean {
+export function isStandaloneLineTarget(sourceCode: Readonly<SourceCodeLike>, node: Readonly<TSESTree.Node>): boolean {
   const start = getNodeStart(node);
   if (start === null) {
     return false;

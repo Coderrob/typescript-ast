@@ -55,9 +55,7 @@ function testFindEnclosingFunction(): void {
     expect(findEnclosingFunction(asBlockStatement(fn.body).body[0])).toBe(fn);
   });
   it("should return null when not inside a function", () => {
-    expect(
-      findEnclosingFunction(parseProgWithParents("x;").body[0]),
-    ).toBeNull();
+    expect(findEnclosingFunction(parseProgWithParents("x;").body[0])).toBeNull();
   });
   it("should return null for null", () => {
     expect(findEnclosingFunction(null)).toBeNull();
@@ -67,17 +65,12 @@ function testFindEnclosingFunction(): void {
 function testGetNextStatementInBlock(): void {
   it("should return next statement", () => {
     const block = asBlockStatement(
-      asFunctionDeclaration(
-        parseProg("function f() { const x = 1; return x; }").body[0],
-      ).body,
+      asFunctionDeclaration(parseProg("function f() { const x = 1; return x; }").body[0]).body,
     );
     expect(getNextStatementInBlock(block, block.body[0])).toBe(block.body[1]);
   });
   it("should return null for last statement", () => {
-    const block = asBlockStatement(
-      asFunctionDeclaration(parseProg("function f() { return 1; }").body[0])
-        .body,
-    );
+    const block = asBlockStatement(asFunctionDeclaration(parseProg("function f() { return 1; }").body[0]).body);
     expect(getNextStatementInBlock(block, block.body[0])).toBeNull();
   });
   it("should return null when node not in block", () => {
@@ -106,32 +99,20 @@ function testGetParentBlockStatement(): void {
 function testIsInsideBoundary(): void {
   it("should return true when inside matchType", () => {
     const ret = parseFnBodyRet("function f() { return 1; }");
-    expect(
-      isInsideBoundary(ret, [], [AST_NODE_TYPES.FunctionDeclaration]),
-    ).toBe(true);
+    expect(isInsideBoundary(ret, [], [AST_NODE_TYPES.FunctionDeclaration])).toBe(true);
   });
   it("should return false when stopped by stopType before matchType", () => {
     const ret = parseFnBodyRet("function f() { return 1; }");
-    expect(
-      isInsideBoundary(
-        ret,
-        [AST_NODE_TYPES.BlockStatement],
-        [AST_NODE_TYPES.FunctionDeclaration],
-      ),
-    ).toBe(false);
+    expect(isInsideBoundary(ret, [AST_NODE_TYPES.BlockStatement], [AST_NODE_TYPES.FunctionDeclaration])).toBe(false);
   });
   it("should return false for null", () => {
     expect(isInsideBoundary(null, [], [AST_NODE_TYPES.Program])).toBe(false);
   });
   it("should prefer matches over stops when a type appears in both lists", () => {
     const ret = parseFnBodyRet("function f() { return 1; }");
-    expect(
-      isInsideBoundary(
-        ret,
-        [AST_NODE_TYPES.FunctionDeclaration],
-        [AST_NODE_TYPES.FunctionDeclaration],
-      ),
-    ).toBe(true);
+    expect(isInsideBoundary(ret, [AST_NODE_TYPES.FunctionDeclaration], [AST_NODE_TYPES.FunctionDeclaration])).toBe(
+      true,
+    );
   });
 }
 
@@ -142,13 +123,7 @@ function testIsInsideBoundaryAncestorArrayPrecedence(): void {
     const block = asBlockStatement(loop.body);
     const ancestors: ReadonlyArray<TSESTree.Node> = [ast, loop, block];
 
-    expect(
-      isInsideBoundary(
-        ancestors,
-        [AST_NODE_TYPES.ForStatement],
-        [AST_NODE_TYPES.ForStatement],
-      ),
-    ).toBe(true);
+    expect(isInsideBoundary(ancestors, [AST_NODE_TYPES.ForStatement], [AST_NODE_TYPES.ForStatement])).toBe(true);
   });
 }
 
@@ -159,13 +134,20 @@ function testIsInsideBoundaryAncestorArrayTypes(): void {
     const block = asBlockStatement(loop.body);
     const ancestors: ReadonlyArray<TSESTree.Node> = [ast, loop, block];
 
-    expect(
-      isInsideBoundary(
-        ancestors,
-        [AST_NODE_TYPES.FunctionExpression],
-        [AST_NODE_TYPES.ForStatement],
-      ),
-    ).toBe(true);
+    expect(isInsideBoundary(ancestors, [AST_NODE_TYPES.FunctionExpression], [AST_NODE_TYPES.ForStatement])).toBe(true);
+  });
+
+  it("should return false when stop boundary appears before any match", () => {
+    const ast = parseProg("for (;;) { x; }");
+    const loop = asForStatement(ast.body[0]);
+    const block = asBlockStatement(loop.body);
+    const ancestors: ReadonlyArray<TSESTree.Node> = [ast, loop, block];
+
+    expect(isInsideBoundary(ancestors, [AST_NODE_TYPES.ForStatement], [AST_NODE_TYPES.FunctionExpression])).toBe(false);
+  });
+
+  it("should return false for an empty ancestor array", () => {
+    expect(isInsideBoundary([], [], [AST_NODE_TYPES.Program])).toBe(false);
   });
 }
 
@@ -177,12 +159,13 @@ function testIsInsideBoundaryAncestors(): void {
     const ancestors = [ast, loop, block];
 
     expect(
-      isInsideBoundary(
-        ancestors,
-        new Set([AST_NODE_TYPES.FunctionExpression]),
-        new Set([AST_NODE_TYPES.ForStatement]),
-      ),
+      isInsideBoundary(ancestors, new Set([AST_NODE_TYPES.FunctionExpression]), new Set([AST_NODE_TYPES.ForStatement])),
     ).toBe(true);
+  });
+
+  it("should return false for node traversal when no parent exists", () => {
+    const standaloneNode = parseProg("x;").body[0];
+    expect(isInsideBoundary(standaloneNode, [AST_NODE_TYPES.BlockStatement], [AST_NODE_TYPES.Program])).toBe(false);
   });
 }
 
@@ -193,12 +176,6 @@ describe("navigation", () => {
   describe("getParentBlockStatement", testGetParentBlockStatement);
   describe("isInsideBoundary", testIsInsideBoundary);
   describe("isInsideBoundary ancestors", testIsInsideBoundaryAncestors);
-  describe(
-    "isInsideBoundary ancestor array precedence",
-    testIsInsideBoundaryAncestorArrayPrecedence,
-  );
-  describe(
-    "isInsideBoundary ancestor array types",
-    testIsInsideBoundaryAncestorArrayTypes,
-  );
+  describe("isInsideBoundary ancestor array precedence", testIsInsideBoundaryAncestorArrayPrecedence);
+  describe("isInsideBoundary ancestor array types", testIsInsideBoundaryAncestorArrayTypes);
 });

@@ -1,3 +1,4 @@
+import { isObject, isString } from "@coderrob/typescript-type-guards";
 import { TSESTree } from "@typescript-eslint/types";
 
 type Stack = null | { readonly head: TSESTree.Node; readonly tail: Stack };
@@ -8,15 +9,33 @@ type Stack = null | { readonly head: TSESTree.Node; readonly tail: Stack };
  * @param tail - The existing stack to append the new nodes in front of.
  * @returns A new stack with nodes prepended in traversal order.
  */
-function buildStack(
-  nodes: readonly TSESTree.Node[],
-  tail: Readonly<Stack>,
-): Stack {
+function buildStack(nodes: readonly TSESTree.Node[], tail: Readonly<Stack>): Stack {
   let result: Stack = tail;
   for (let index = nodes.length - 1; index >= 0; index -= 1) {
     result = { head: nodes[index], tail: result };
   }
   return result;
+}
+
+/**
+ * Extend stack with current node children unless traversal is stopped.
+ * @param node - The node currently being visited.
+ * @param visitorKeys - The visitor keys map for traversal.
+ * @param stack - The remaining traversal stack.
+ * @param stopPredicate - Optional predicate that blocks descending into children.
+ * @returns The next traversal stack.
+ */
+function extendStackWithChildren(
+  node: Readonly<TSESTree.Node>,
+  visitorKeys: Readonly<Record<string, readonly string[] | undefined>>,
+  stack: Readonly<Stack>,
+  stopPredicate: ((node: Readonly<TSESTree.Node>) => boolean) | undefined,
+): Stack {
+  if (shouldStopTraversal(stopPredicate, node)) {
+    return stack;
+  }
+
+  return buildStack(getChildNodes(node, visitorKeys), stack);
 }
 
 /**
@@ -36,14 +55,13 @@ export function findDescendant(
   let stack = buildStack(getChildNodes(node, visitorKeys), null);
   while (stack !== null) {
     const { head: current, tail } = stack;
+    stack = tail;
+
     if (predicate(current)) {
       return current;
     }
-    if (stopPredicate?.(current)) {
-      stack = tail;
-      continue;
-    }
-    stack = buildStack(getChildNodes(current, visitorKeys), tail);
+
+    stack = extendStackWithChildren(current, visitorKeys, stack, stopPredicate);
   }
   return null;
 }
@@ -67,10 +85,7 @@ function getChildNodes(
  * @param keys - The visitor keys to process.
  * @returns The collected child AST nodes.
  */
-function getChildNodesForKeys(
-  node: Readonly<TSESTree.Node>,
-  keys: readonly string[],
-): TSESTree.Node[] {
+function getChildNodesForKeys(node: Readonly<TSESTree.Node>, keys: readonly string[]): TSESTree.Node[] {
   /**
    * Resolve child nodes for one visitor key on the current node.
    * @param key - The visitor key to read from the node.
@@ -88,10 +103,7 @@ function getChildNodesForKeys(
  * @param key - The visitor key to read.
  * @returns The child AST nodes for that key.
  */
-function getChildrenForKey(
-  node: Readonly<TSESTree.Node>,
-  key: string,
-): TSESTree.Node[] {
+function getChildrenForKey(node: Readonly<TSESTree.Node>, key: string): TSESTree.Node[] {
   return [...getChildrenForKeyValue(Reflect.get(node, key))];
 }
 
@@ -162,5 +174,18 @@ export function hasSomeDescendant(
  * @returns True when the value is node-like.
  */
 function isAstNode(value: unknown): value is TSESTree.Node {
-  return typeof value === "object" && value !== null && "type" in value;
+  return isObject(value) && "type" in value && isString(Reflect.get(value, "type"));
+}
+
+/**
+ * Determine whether traversal should stop at the current node.
+ * @param stopPredicate - Optional predicate for blocking subtree traversal.
+ * @param node - The node currently being visited.
+ * @returns True when traversal into this node should stop.
+ */
+function shouldStopTraversal(
+  stopPredicate: ((node: Readonly<TSESTree.Node>) => boolean) | undefined,
+  node: Readonly<TSESTree.Node>,
+): boolean {
+  return stopPredicate !== undefined && stopPredicate(node);
 }

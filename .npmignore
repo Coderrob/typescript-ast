@@ -1,0 +1,11 @@
+# Deny all by default and explicitly allow publish artifacts.
+*
+
+# Required package metadata/docs.
+!package.json
+!README.md
+!LICENSE*
+
+# Published runtime/types bundle.
+!dist/
+!dist/**

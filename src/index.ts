@@ -7,5 +7,4 @@ export * from "./ast/search";
 export * from "./ast/statements";
 export * from "./ast/types";
 export * from "./guards/nodes";
-export * from "./guards/values";
 export * from "./import-paths";

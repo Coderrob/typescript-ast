@@ -1,3 +1,4 @@
+import { isObject, isString } from "@coderrob/typescript-type-guards";
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/types";
 
 export type FunctionNode =
@@ -8,15 +9,19 @@ export type FunctionNode =
 
 const TEST_FILE_PATTERN = /\.(test|spec|e2e|integration)\.[cm]?[jt]sx?$/;
 const TEST_DIRECTORY_SEGMENT = "/__tests__/";
+const FUNCTION_LIKE_NODE_TYPES = new Set<AST_NODE_TYPES>([
+  AST_NODE_TYPES.ArrowFunctionExpression,
+  AST_NODE_TYPES.FunctionDeclaration,
+  AST_NODE_TYPES.FunctionExpression,
+  AST_NODE_TYPES.TSDeclareFunction,
+]);
 
 /**
  * Type guard for BinaryExpression nodes.
  * @param node - The node to check.
  * @returns True if the node is a BinaryExpression.
  */
-export function isBinaryExpression(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.BinaryExpression {
+export function isBinaryExpression(node: TSESTree.Node | null | undefined): node is TSESTree.BinaryExpression {
   return node?.type === AST_NODE_TYPES.BinaryExpression;
 }
 
@@ -25,9 +30,7 @@ export function isBinaryExpression(
  * @param node - The node to check.
  * @returns True if the node is a BlockStatement.
  */
-export function isBlockStatement(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.BlockStatement {
+export function isBlockStatement(node: TSESTree.Node | null | undefined): node is TSESTree.BlockStatement {
   return node?.type === AST_NODE_TYPES.BlockStatement;
 }
 
@@ -36,9 +39,7 @@ export function isBlockStatement(
  * @param node - The node to check.
  * @returns True if the node is a CallExpression.
  */
-export function isCallExpression(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.CallExpression {
+export function isCallExpression(node: TSESTree.Node | null | undefined): node is TSESTree.CallExpression {
   return node?.type === AST_NODE_TYPES.CallExpression;
 }
 
@@ -47,9 +48,7 @@ export function isCallExpression(
  * @param node - The node to check.
  * @returns True if the node is a FunctionDeclaration.
  */
-export function isFunctionDeclaration(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.FunctionDeclaration {
+export function isFunctionDeclaration(node: TSESTree.Node | null | undefined): node is TSESTree.FunctionDeclaration {
   return node?.type === AST_NODE_TYPES.FunctionDeclaration;
 }
 
@@ -58,15 +57,8 @@ export function isFunctionDeclaration(
  * @param node - The node to check.
  * @returns True if the node is a supported function-like node.
  */
-export function isFunctionLike(
-  node: TSESTree.Node | null | undefined,
-): node is FunctionNode {
-  return (
-    node?.type === AST_NODE_TYPES.ArrowFunctionExpression ||
-    node?.type === AST_NODE_TYPES.FunctionDeclaration ||
-    node?.type === AST_NODE_TYPES.FunctionExpression ||
-    node?.type === AST_NODE_TYPES.TSDeclareFunction
-  );
+export function isFunctionLike(node: TSESTree.Node | null | undefined): node is FunctionNode {
+  return node !== null && node !== undefined && FUNCTION_LIKE_NODE_TYPES.has(node.type);
 }
 
 /**
@@ -74,9 +66,7 @@ export function isFunctionLike(
  * @param node - The node to check.
  * @returns True if the node is an Identifier.
  */
-export function isIdentifier(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.Identifier {
+export function isIdentifier(node: TSESTree.Node | null | undefined): node is TSESTree.Identifier {
   return node?.type === AST_NODE_TYPES.Identifier;
 }
 
@@ -85,9 +75,7 @@ export function isIdentifier(
  * @param node - The node to check.
  * @returns True if the node is a Literal.
  */
-export function isLiteral(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.Literal {
+export function isLiteral(node: TSESTree.Node | null | undefined): node is TSESTree.Literal {
   return node?.type === AST_NODE_TYPES.Literal;
 }
 
@@ -96,9 +84,7 @@ export function isLiteral(
  * @param node - The node to check.
  * @returns True if the node is a MemberExpression.
  */
-export function isMemberExpression(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.MemberExpression {
+export function isMemberExpression(node: TSESTree.Node | null | undefined): node is TSESTree.MemberExpression {
   return node?.type === AST_NODE_TYPES.MemberExpression;
 }
 
@@ -107,9 +93,7 @@ export function isMemberExpression(
  * @param node - The node to check.
  * @returns True if the node is a MethodDefinition.
  */
-export function isMethodDefinition(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.MethodDefinition {
+export function isMethodDefinition(node: TSESTree.Node | null | undefined): node is TSESTree.MethodDefinition {
   return node?.type === AST_NODE_TYPES.MethodDefinition;
 }
 
@@ -119,10 +103,7 @@ export function isMethodDefinition(
  * @param name - The expected name.
  * @returns True if the node is an Identifier with the given name.
  */
-export function isNamedIdentifier(
-  node: TSESTree.Node | null | undefined,
-  name: string,
-): node is TSESTree.Identifier {
+export function isNamedIdentifier(node: TSESTree.Node | null | undefined, name: string): node is TSESTree.Identifier {
   return isIdentifier(node) && node.name === name;
 }
 
@@ -132,12 +113,7 @@ export function isNamedIdentifier(
  * @returns True if the value has a string `type` property.
  */
 export function isNodeLike(value: unknown): value is TSESTree.Node {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "type" in value &&
-    typeof Reflect.get(value, "type") === "string"
-  );
+  return isObject(value) && "type" in value && isString(Reflect.get(value, "type"));
 }
 
 /**
@@ -145,9 +121,7 @@ export function isNodeLike(value: unknown): value is TSESTree.Node {
  * @param node - The node to check.
  * @returns True if the node is a ReturnStatement.
  */
-export function isReturnStatement(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.ReturnStatement {
+export function isReturnStatement(node: TSESTree.Node | null | undefined): node is TSESTree.ReturnStatement {
   return node?.type === AST_NODE_TYPES.ReturnStatement;
 }
 
@@ -156,10 +130,8 @@ export function isReturnStatement(
  * @param node - The node to check.
  * @returns True if the node is a string Literal.
  */
-export function isStringLiteral(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.StringLiteral {
-  return isLiteral(node) && typeof node.value === "string";
+export function isStringLiteral(node: TSESTree.Node | null | undefined): node is TSESTree.StringLiteral {
+  return isLiteral(node) && isString(node.value);
 }
 
 /**
@@ -167,9 +139,7 @@ export function isStringLiteral(
  * @param node - The node to check.
  * @returns True if the node is a SwitchCase.
  */
-export function isSwitchCase(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.SwitchCase {
+export function isSwitchCase(node: TSESTree.Node | null | undefined): node is TSESTree.SwitchCase {
   return node?.type === AST_NODE_TYPES.SwitchCase;
 }
 
@@ -180,10 +150,7 @@ export function isSwitchCase(
  */
 export function isTestFile(filename: string): boolean {
   const normalizedFilename = filename.replace(/\\/g, "/").toLowerCase();
-  return (
-    normalizedFilename.includes(TEST_DIRECTORY_SEGMENT) ||
-    TEST_FILE_PATTERN.test(normalizedFilename)
-  );
+  return normalizedFilename.includes(TEST_DIRECTORY_SEGMENT) || TEST_FILE_PATTERN.test(normalizedFilename);
 }
 
 /**
@@ -191,9 +158,7 @@ export function isTestFile(filename: string): boolean {
  * @param node - The node to check.
  * @returns True if the node is a ThisExpression.
  */
-export function isThisExpression(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.ThisExpression {
+export function isThisExpression(node: TSESTree.Node | null | undefined): node is TSESTree.ThisExpression {
   return node?.type === AST_NODE_TYPES.ThisExpression;
 }
 
@@ -202,9 +167,7 @@ export function isThisExpression(
  * @param node - The node to check.
  * @returns True if the node is a TSAsExpression.
  */
-export function isTSAsExpression(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.TSAsExpression {
+export function isTSAsExpression(node: TSESTree.Node | null | undefined): node is TSESTree.TSAsExpression {
   return node?.type === AST_NODE_TYPES.TSAsExpression;
 }
 
@@ -213,9 +176,7 @@ export function isTSAsExpression(
  * @param node - The node to check.
  * @returns True if the node is a TSEnumMember.
  */
-export function isTSEnumMember(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.TSEnumMember {
+export function isTSEnumMember(node: TSESTree.Node | null | undefined): node is TSESTree.TSEnumMember {
   return node?.type === AST_NODE_TYPES.TSEnumMember;
 }
 
@@ -224,9 +185,7 @@ export function isTSEnumMember(
  * @param node - The node to check.
  * @returns True if the node is a TSNonNullExpression.
  */
-export function isTSNonNullExpression(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.TSNonNullExpression {
+export function isTSNonNullExpression(node: TSESTree.Node | null | undefined): node is TSESTree.TSNonNullExpression {
   return node?.type === AST_NODE_TYPES.TSNonNullExpression;
 }
 
@@ -235,9 +194,7 @@ export function isTSNonNullExpression(
  * @param node - The node to check.
  * @returns True if the node is a TSParameterProperty.
  */
-export function isTSParameterProperty(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.TSParameterProperty {
+export function isTSParameterProperty(node: TSESTree.Node | null | undefined): node is TSESTree.TSParameterProperty {
   return node?.type === AST_NODE_TYPES.TSParameterProperty;
 }
 
@@ -246,9 +203,7 @@ export function isTSParameterProperty(
  * @param node - The node to check.
  * @returns True if the node is a TSPropertySignature.
  */
-export function isTSPropertySignature(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.TSPropertySignature {
+export function isTSPropertySignature(node: TSESTree.Node | null | undefined): node is TSESTree.TSPropertySignature {
   return node?.type === AST_NODE_TYPES.TSPropertySignature;
 }
 
@@ -268,9 +223,7 @@ export function isTSSatisfiesExpression(
  * @param node - The node to check.
  * @returns True if the node is a TSTypeAnnotation.
  */
-export function isTSTypeAnnotation(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.TSTypeAnnotation {
+export function isTSTypeAnnotation(node: TSESTree.Node | null | undefined): node is TSESTree.TSTypeAnnotation {
   return node?.type === AST_NODE_TYPES.TSTypeAnnotation;
 }
 
@@ -279,9 +232,7 @@ export function isTSTypeAnnotation(
  * @param node - The node to check.
  * @returns True if the node is a TSTypeLiteral.
  */
-export function isTSTypeLiteral(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.TSTypeLiteral {
+export function isTSTypeLiteral(node: TSESTree.Node | null | undefined): node is TSESTree.TSTypeLiteral {
   return node?.type === AST_NODE_TYPES.TSTypeLiteral;
 }
 
@@ -290,9 +241,7 @@ export function isTSTypeLiteral(
  * @param node - The node to check.
  * @returns True if the node is a TSTypeReference.
  */
-export function isTSTypeReference(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.TSTypeReference {
+export function isTSTypeReference(node: TSESTree.Node | null | undefined): node is TSESTree.TSTypeReference {
   return node?.type === AST_NODE_TYPES.TSTypeReference;
 }
 
@@ -301,9 +250,7 @@ export function isTSTypeReference(
  * @param node - The node to check.
  * @returns True if the node is a UnaryExpression.
  */
-export function isUnaryExpression(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.UnaryExpression {
+export function isUnaryExpression(node: TSESTree.Node | null | undefined): node is TSESTree.UnaryExpression {
   return node?.type === AST_NODE_TYPES.UnaryExpression;
 }
 
@@ -316,7 +263,7 @@ export function isUncomputedMemberExpression(
   node: TSESTree.Node | null | undefined,
 ): node is TSESTree.MemberExpression & {
   computed: false;
-  object: TSESTree.Expression;
+  object: TSESTree.Expression | TSESTree.Super;
   property: TSESTree.Expression | TSESTree.PrivateIdentifier;
 } {
   return isMemberExpression(node) && !node.computed;
@@ -327,9 +274,7 @@ export function isUncomputedMemberExpression(
  * @param node - The node to check.
  * @returns True if the node is a VariableDeclaration.
  */
-export function isVariableDeclaration(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.VariableDeclaration {
+export function isVariableDeclaration(node: TSESTree.Node | null | undefined): node is TSESTree.VariableDeclaration {
   return node?.type === AST_NODE_TYPES.VariableDeclaration;
 }
 
@@ -338,9 +283,7 @@ export function isVariableDeclaration(
  * @param node - The node to check.
  * @returns True if the node is a VariableDeclarator.
  */
-export function isVariableDeclarator(
-  node: TSESTree.Node | null | undefined,
-): node is TSESTree.VariableDeclarator {
+export function isVariableDeclarator(node: TSESTree.Node | null | undefined): node is TSESTree.VariableDeclarator {
   return node?.type === AST_NODE_TYPES.VariableDeclarator;
 }
 

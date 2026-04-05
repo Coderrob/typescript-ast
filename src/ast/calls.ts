@@ -1,11 +1,20 @@
 import { TSESTree } from "@typescript-eslint/types";
-import {
-  isCallExpression,
-  isIdentifier,
-  isMemberExpression,
-  isStringLiteral,
-} from "../guards/nodes";
+import { isCallExpression, isIdentifier, isMemberExpression, isStringLiteral } from "../guards/nodes";
 import { getCallMemberMethodName, getMemberPropertyName } from "./helpers";
+
+/**
+ * Append a property segment to a resolved object path.
+ * @param objectPath - The resolved object path.
+ * @param propertyName - The property name to append.
+ * @returns The combined path, or null when the object path is unresolved.
+ */
+function appendPropertyNameSegment(objectPath: ReadonlyArray<string> | null, propertyName: string): string[] | null {
+  if (objectPath === null) {
+    return null;
+  }
+
+  return [...objectPath, propertyName];
+}
 
 /**
  * Get a call expression argument by index.
@@ -25,9 +34,7 @@ export function getCallArgument(
  * @param callee - The callee expression to extract the name path from.
  * @returns The dotted name string, or null if it cannot be determined.
  */
-export function getCalleeNamePath(
-  callee: Readonly<TSESTree.Node>,
-): string | null {
+export function getCalleeNamePath(callee: Readonly<TSESTree.Node>): string | null {
   const segments = getCalleeNameSegments(callee);
   return segments === null ? null : segments.join(".");
 }
@@ -37,24 +44,33 @@ export function getCalleeNamePath(
  * @param callee - The callee expression to inspect.
  * @returns The ordered callee segments, or null if unresolved.
  */
-function getCalleeNameSegments(
-  callee: Readonly<TSESTree.Node>,
-): string[] | null {
+function getCalleeNameSegments(callee: Readonly<TSESTree.Node>): string[] | null {
   if (isIdentifier(callee)) {
     return [callee.name];
   }
+
   if (isCallExpression(callee)) {
-    return getCalleeNameSegments(callee.callee);
+    return getCalleeNameSegmentsWithoutTopLevelCall(callee.callee);
   }
-  if (!isMemberExpression(callee)) {
+
+  return getMemberCalleeNameSegments(callee);
+}
+
+/**
+ * Get callee name segments without allowing nested call-expression segments.
+ * @param callee - The callee expression to inspect.
+ * @returns The ordered segments, or null when unresolved.
+ */
+function getCalleeNameSegmentsWithoutTopLevelCall(callee: Readonly<TSESTree.Node>): string[] | null {
+  if (isIdentifier(callee)) {
+    return [callee.name];
+  }
+
+  if (isCallExpression(callee)) {
     return null;
   }
 
-  const propertyName = getMemberPropertyName(callee);
-  const objectPath = getCalleeNameSegments(callee.object);
-  return propertyName === null || objectPath === null
-    ? null
-    : [...objectPath, propertyName];
+  return getMemberCalleeNameSegments(callee);
 }
 
 /**
@@ -62,9 +78,7 @@ function getCalleeNameSegments(
  * @param node - The call expression node.
  * @returns The first argument node, or null if none.
  */
-export function getFirstCallArgument(
-  node: Readonly<TSESTree.CallExpression>,
-): TSESTree.CallExpressionArgument | null {
+export function getFirstCallArgument(node: Readonly<TSESTree.CallExpression>): TSESTree.CallExpressionArgument | null {
   return getCallArgument(node, 0);
 }
 
@@ -83,20 +97,66 @@ export function getMatchingCallMemberMethodName(
 }
 
 /**
+ * Narrow a node to a member-expression callee when possible.
+ * @param callee - The callee node to inspect.
+ * @returns The member-expression callee, or null.
+ */
+function getMemberCallee(callee: Readonly<TSESTree.Node>): TSESTree.MemberExpression | null {
+  return isMemberExpression(callee) ? callee : null;
+}
+
+/**
+ * Get callee name segments from a member-expression callee.
+ * @param callee - The member-expression-like callee node.
+ * @returns The ordered segments, or null when unresolved.
+ */
+function getMemberCalleeNameSegments(callee: Readonly<TSESTree.Node>): string[] | null {
+  const memberCallee = getMemberCallee(callee);
+  if (memberCallee === null) {
+    return null;
+  }
+
+  const propertyName = getResolvedMemberPropertyName(memberCallee);
+  if (propertyName === null) {
+    return null;
+  }
+
+  const objectPath = getCalleeNameSegmentsWithoutTopLevelCall(memberCallee.object);
+  return appendPropertyNameSegment(objectPath, propertyName);
+}
+
+/**
+ * Resolve a member-expression property name.
+ * @param callee - The member-expression callee.
+ * @returns The resolved property name, or null.
+ */
+function getResolvedMemberPropertyName(callee: Readonly<TSESTree.MemberExpression>): string | null {
+  return getMemberPropertyName(callee);
+}
+
+/**
  * Get the string literal argument at the given index.
  * @param node - The call expression node.
  * @param index - The argument index to retrieve.
  * @returns The string value if the argument is a string literal, otherwise null.
  */
-export function getStringLiteralCallArgument(
-  node: Readonly<TSESTree.CallExpression>,
-  index: number,
-): string | null {
+export function getStringLiteralCallArgument(node: Readonly<TSESTree.CallExpression>, index: number): string | null {
   const argument = getCallArgument(node, index);
   if (!argument || !isStringLiteral(argument)) {
     return null;
   }
   return argument.value;
+}
+
+/**
+ * Get a non-computed member-expression callee, if present.
+ * @param node - The call expression to inspect.
+ * @returns The non-computed member callee, or null.
+ */
+function getUncomputedMemberCallee(
+  node: Readonly<TSESTree.CallExpression>,
+): (TSESTree.MemberExpression & { computed: false }) | null {
+  return isMemberExpression(node.callee) && !node.callee.computed ? node.callee : null;
 }
 
 /**
@@ -119,10 +179,7 @@ export function hasCallCalleeNamePath(
  * @param name - The expected callee name.
  * @returns True if the callee is an identifier matching the given name.
  */
-export function hasIdentifierCallee(
-  node: Readonly<TSESTree.CallExpression>,
-  name: string,
-): boolean {
+export function hasIdentifierCallee(node: Readonly<TSESTree.CallExpression>, name: string): boolean {
   return isIdentifier(node.callee) && node.callee.name === name;
 }
 
@@ -132,17 +189,34 @@ export function hasIdentifierCallee(
  * @param expectedPath - The expected callee path.
  * @returns True when both paths match by segment and length.
  */
-function hasMatchingNamePath(
-  actualPath: ReadonlyArray<string>,
-  expectedPath: ReadonlyArray<string>,
-): boolean {
-  if (actualPath.length !== expectedPath.length) {
-    return false;
+function hasMatchingNamePath(actualPath: ReadonlyArray<string>, expectedPath: ReadonlyArray<string>): boolean {
+  return hasMatchingPathLength(actualPath, expectedPath) && hasMatchingPathSegments(actualPath, expectedPath);
+}
+
+/**
+ * Check whether actual and expected path lengths match.
+ * @param actualPath - The resolved callee path.
+ * @param expectedPath - The expected callee path.
+ * @returns True when path lengths match.
+ */
+function hasMatchingPathLength(actualPath: ReadonlyArray<string>, expectedPath: ReadonlyArray<string>): boolean {
+  return actualPath.length === expectedPath.length;
+}
+
+/**
+ * Check whether all path segments match by index.
+ * @param actualPath - The resolved callee path.
+ * @param expectedPath - The expected callee path.
+ * @returns True when all segments match.
+ */
+function hasMatchingPathSegments(actualPath: ReadonlyArray<string>, expectedPath: ReadonlyArray<string>): boolean {
+  for (const [index, segment] of actualPath.entries()) {
+    if (segment !== expectedPath[index]) {
+      return false;
+    }
   }
-  return actualPath.length === 0
-    ? true
-    : actualPath[0] === expectedPath[0] &&
-        hasMatchingNamePath(actualPath.slice(1), expectedPath.slice(1));
+
+  return true;
 }
 
 /**
@@ -150,10 +224,47 @@ function hasMatchingNamePath(
  * @param node - The call expression node.
  * @returns True if the callee is a MemberExpression.
  */
-export function hasMemberCallee(
-  node: Readonly<TSESTree.CallExpression>,
-): boolean {
+export function hasMemberCallee(node: Readonly<TSESTree.CallExpression>): boolean {
   return isMemberExpression(node.callee);
+}
+
+/**
+ * Check whether a member expression has the expected object identifier name.
+ * @param callee - The member expression to inspect.
+ * @param objectName - The expected object identifier name.
+ * @returns True when the object name matches.
+ */
+function hasNamedMemberObject(callee: Readonly<TSESTree.MemberExpression>, objectName: string): boolean {
+  return isIdentifier(callee.object) && callee.object.name === objectName;
+}
+
+/**
+ * Check whether a member expression has the expected object/property identifier names.
+ * @param callee - The member expression to inspect.
+ * @param objectName - The expected object identifier name.
+ * @param propertyName - The expected property identifier name.
+ * @returns True when object and property names both match.
+ */
+function hasNamedMemberObjectAndProperty(
+  callee: Readonly<TSESTree.MemberExpression>,
+  objectName: string,
+  propertyName: string,
+): boolean {
+  if (!hasNamedMemberObject(callee, objectName)) {
+    return false;
+  }
+
+  return hasNamedMemberProperty(callee, propertyName);
+}
+
+/**
+ * Check whether a member expression has the expected property identifier name.
+ * @param callee - The member expression to inspect.
+ * @param propertyName - The expected property identifier name.
+ * @returns True when the property name matches.
+ */
+function hasNamedMemberProperty(callee: Readonly<TSESTree.MemberExpression>, propertyName: string): boolean {
+  return isIdentifier(callee.property) && callee.property.name === propertyName;
 }
 
 /**
@@ -162,15 +273,9 @@ export function hasMemberCallee(
  * @param name - The expected dotted name path.
  * @returns True if the callee is an identifier or member expression whose name path matches the given name.
  */
-export function isNamedCall(
-  node: Readonly<TSESTree.CallExpression>,
-  name: string,
-): boolean {
+export function isNamedCall(node: Readonly<TSESTree.CallExpression>, name: string): boolean {
   const callee = node.callee;
-  return (
-    (isIdentifier(callee) || isMemberExpression(callee)) &&
-    getCalleeNamePath(callee) === name
-  );
+  return (isIdentifier(callee) || isMemberExpression(callee)) && getCalleeNamePath(callee) === name;
 }
 
 /**
@@ -185,13 +290,6 @@ export function isNamedMemberCall(
   objectName: string,
   propertyName: string,
 ): boolean {
-  if (!isMemberExpression(node.callee) || node.callee.computed) return false;
-  const obj = node.callee.object;
-  const prop = node.callee.property;
-  return (
-    isIdentifier(obj) &&
-    obj.name === objectName &&
-    isIdentifier(prop) &&
-    prop.name === propertyName
-  );
+  const callee = getUncomputedMemberCallee(node);
+  return callee !== null && hasNamedMemberObjectAndProperty(callee, objectName, propertyName);
 }

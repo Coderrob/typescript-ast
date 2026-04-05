@@ -1,3 +1,4 @@
+import { isPlainObject, isString } from "@coderrob/typescript-type-guards";
 import { TSESTree } from "@typescript-eslint/types";
 import {
   FunctionNode,
@@ -8,7 +9,6 @@ import {
   isNodeLike,
   isVariableDeclarator,
 } from "../guards/nodes";
-import { isPlainObject, isString } from "../guards/values";
 
 const ANONYMOUS_FUNCTION_NAME = "<anonymous>";
 const LITERAL_NODE_TYPE = "Literal";
@@ -31,12 +31,17 @@ type SourceCodeVisitorKeysLike = {
  * @param node - The call expression to inspect.
  * @returns The resolved member method name, or null.
  */
-export function getCallMemberMethodName(
-  node: Readonly<TSESTree.CallExpression>,
-): string | null {
-  return isMemberExpression(node.callee)
-    ? getMemberPropertyName(node.callee)
-    : null;
+export function getCallMemberMethodName(node: Readonly<TSESTree.CallExpression>): string | null {
+  return isMemberExpression(node.callee) ? getMemberPropertyName(node.callee) : null;
+}
+
+/**
+ * Resolve a member property name from string-computed access.
+ * @param node - The member expression-like node to inspect.
+ * @returns The property name, or null.
+ */
+function getComputedMemberPropertyName(node: Readonly<MemberExpressionLike>): string | null {
+  return isString(node.property.value) ? node.property.value : null;
 }
 
 /**
@@ -44,9 +49,7 @@ export function getCallMemberMethodName(
  * @param node - The function-like node to inspect.
  * @returns The declaration name, or null.
  */
-export function getFunctionDeclarationName(
-  node: Readonly<FunctionNode>,
-): string | null {
+export function getFunctionDeclarationName(node: Readonly<FunctionNode>): string | null {
   return isFunctionDeclaration(node) ? getIdentifierName(node.id) : null;
 }
 
@@ -55,9 +58,7 @@ export function getFunctionDeclarationName(
  * @param node - The function-like node to inspect.
  * @returns The method name, or null.
  */
-export function getFunctionMethodName(
-  node: Readonly<FunctionNode>,
-): string | null {
+export function getFunctionMethodName(node: Readonly<FunctionNode>): string | null {
   const parent = getRuntimeParent(node);
   return isMethodDefinition(parent) ? getIdentifierName(parent.key) : null;
 }
@@ -67,9 +68,7 @@ export function getFunctionMethodName(
  * @param node - The function-like node to inspect.
  * @returns The variable name, or null.
  */
-export function getFunctionVariableName(
-  node: Readonly<FunctionNode>,
-): string | null {
+export function getFunctionVariableName(node: Readonly<FunctionNode>): string | null {
   const parent = getRuntimeParent(node);
   return isVariableDeclarator(parent) ? getIdentifierName(parent.id) : null;
 }
@@ -79,9 +78,7 @@ export function getFunctionVariableName(
  * @param node - The node to inspect.
  * @returns The identifier name, or null.
  */
-export function getIdentifierName(
-  node: Readonly<TSESTree.Node> | null | undefined,
-): string | null {
+export function getIdentifierName(node: Readonly<TSESTree.Node> | null | undefined): string | null {
   return isIdentifier(node) ? node.name : null;
 }
 
@@ -93,9 +90,11 @@ export function getIdentifierName(
 export function getLiteralStringValue(
   node: Readonly<{ type: string; value?: unknown }> | null | undefined,
 ): string | null {
-  return node?.type === LITERAL_NODE_TYPE && isString(node.value)
-    ? node.value
-    : null;
+  if (!isLiteralStringNode(node)) {
+    return null;
+  }
+
+  return node.value;
 }
 
 /**
@@ -122,14 +121,8 @@ export function getMappedMemberPropertyName(
  * @param node - The member expression-like node to inspect.
  * @returns The property name, or null.
  */
-export function getMemberPropertyName(
-  node: Readonly<MemberExpressionLike>,
-): string | null {
-  if (!node.computed) {
-    return isString(node.property.name) ? node.property.name : null;
-  }
-
-  return isString(node.property.value) ? node.property.value : null;
+export function getMemberPropertyName(node: Readonly<MemberExpressionLike>): string | null {
+  return node.computed ? getComputedMemberPropertyName(node) : getUncomputedMemberPropertyName(node);
 }
 
 /**
@@ -149,6 +142,15 @@ export function getOptionMaxValue(option: unknown): unknown {
 function getRuntimeParent(node: Readonly<TSESTree.Node>): TSESTree.Node | null {
   const parent: unknown = Reflect.get(node, "parent");
   return isNodeLike(parent) ? parent : null;
+}
+
+/**
+ * Resolve a member property name from non-computed access.
+ * @param node - The member expression-like node to inspect.
+ * @returns The property name, or null.
+ */
+function getUncomputedMemberPropertyName(node: Readonly<MemberExpressionLike>): string | null {
+  return isString(node.property.name) ? node.property.name : null;
 }
 
 /**
@@ -186,15 +188,34 @@ function getVisitorKeyNodes(value: unknown): readonly TSESTree.Node[] {
 }
 
 /**
+ * Check whether a node is a literal with a string value.
+ * @param node - The node to inspect.
+ * @returns True when the node is a string literal.
+ */
+function isLiteralStringNode(
+  node: Readonly<{ type: string; value?: unknown }> | null | undefined,
+): node is Readonly<{ type: string; value: string }> {
+  return node?.type === LITERAL_NODE_TYPE && isString(node.value);
+}
+
+/**
  * Resolve the most descriptive function name available.
  * @param node - The function-like node to inspect.
  * @returns The resolved function name.
  */
 export function resolveFunctionName(node: Readonly<FunctionNode>): string {
-  return (
-    getFunctionDeclarationName(node) ??
-    getFunctionVariableName(node) ??
-    getFunctionMethodName(node) ??
-    ANONYMOUS_FUNCTION_NAME
-  );
+  const resolvers: ReadonlyArray<(node: Readonly<FunctionNode>) => string | null> = [
+    getFunctionDeclarationName,
+    getFunctionVariableName,
+    getFunctionMethodName,
+  ];
+
+  for (const resolveName of resolvers) {
+    const resolvedName = resolveName(node);
+    if (resolvedName !== null) {
+      return resolvedName;
+    }
+  }
+
+  return ANONYMOUS_FUNCTION_NAME;
 }

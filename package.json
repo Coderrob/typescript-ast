@@ -2,9 +2,24 @@
   "name": "@coderrob/typescript-ast",
   "version": "0.1.0",
   "description": "Reusable, policy-agnostic AST interpretation helpers for TypeScript analysis",
+  "homepage": "https://github.com/Coderrob/typescript-ast#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Coderrob/typescript-ast.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Coderrob/typescript-ast/issues"
+  },
   "type": "commonjs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -17,13 +32,21 @@
   ],
   "scripts": {
     "build": "tsc",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true});require('node:fs').rmSync('coverage',{recursive:true,force:true})\"",
     "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "lint": "eslint src --ext .ts",
+    "deps:graph": "madge --extensions ts src/index.ts",
+    "deps:circular": "madge --circular --extensions ts src/index.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "publint": "publint",
-    "benchmark": "npm run build && node benchmarks/index.js"
+    "benchmark": "npm run build && node benchmarks/index.js",
+    "pack:dry-run": "npm pack --dry-run",
+    "prepublishOnly": "npm run clean && npm run build && npm run check && npm run deps:circular && npm run publint"
   },
   "keywords": [
     "typescript",
@@ -38,7 +61,9 @@
     "@typescript-eslint/parser": "^8.0.0",
     "@typescript-eslint/types": "^8.0.0",
     "@typescript-eslint/typescript-estree": "^8.0.0",
+    "@vitest/coverage-istanbul": "^3.2.4",
     "eslint": "^9.0.0",
+    "madge": "^8.0.0",
     "prettier": "^3.8.1",
     "publint": "^0.3.18",
     "tinybench": "^6.0.0",
@@ -47,5 +72,8 @@
   },
   "peerDependencies": {
     "@typescript-eslint/types": "^8.0.0"
+  },
+  "dependencies": {
+    "@coderrob/typescript-type-guards": "^1.0.1"
   }
 }

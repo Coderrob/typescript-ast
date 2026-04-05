@@ -16,31 +16,19 @@ const bench = new Bench({ iterations: 100000 });
 bench
   .add("getCalleeNamePath — identifier", () => {
     const stmt = astSimple.body[0];
-    if (
-      stmt &&
-      stmt.type === "ExpressionStatement" &&
-      stmt.expression.type === "CallExpression"
-    ) {
+    if (stmt && stmt.type === "ExpressionStatement" && stmt.expression.type === "CallExpression") {
       lib.getCalleeNamePath(stmt.expression.callee);
     }
   })
   .add("getCalleeNamePath — member chain", () => {
     const stmt = astMember.body[0];
-    if (
-      stmt &&
-      stmt.type === "ExpressionStatement" &&
-      stmt.expression.type === "CallExpression"
-    ) {
+    if (stmt && stmt.type === "ExpressionStatement" && stmt.expression.type === "CallExpression") {
       lib.getCalleeNamePath(stmt.expression.callee);
     }
   })
   .add("isNamedCall — match", () => {
     const stmt = astSimple.body[0];
-    if (
-      stmt &&
-      stmt.type === "ExpressionStatement" &&
-      stmt.expression.type === "CallExpression"
-    ) {
+    if (stmt && stmt.type === "ExpressionStatement" && stmt.expression.type === "CallExpression") {
       lib.isNamedCall(stmt.expression, "foo");
     }
   })
@@ -48,12 +36,7 @@ bench
     lib.hasMatchingDescendant(astNested, visitorKeys, guards.isCallExpression);
   })
   .add("hasMatchingDescendantUntil — Identifier", () => {
-    lib.hasMatchingDescendantUntil(
-      astNested,
-      visitorKeys,
-      guards.isIdentifier,
-      () => false,
-    );
+    lib.hasMatchingDescendantUntil(astNested, visitorKeys, guards.isIdentifier, () => false);
   })
   .add("findDescendant — CallExpression", () => {
     lib.findDescendant(astNested, visitorKeys, guards.isCallExpression);
