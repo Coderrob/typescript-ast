@@ -33,7 +33,7 @@
   "scripts": {
     "build": "tsc",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage",
-    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true});require('node:fs').rmSync('coverage',{recursive:true,force:true})\"",
+    "clean": "rimraf dist coverage",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -66,6 +66,7 @@
     "madge": "^8.0.0",
     "prettier": "^3.8.1",
     "publint": "^0.3.18",
+    "rimraf": "^5.0.0",
     "tinybench": "^6.0.0",
     "typescript": "^5.0.0",
     "vitest": "^3.0.0"

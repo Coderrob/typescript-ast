@@ -1,26 +1,32 @@
-# typescript-ast
+<p align="center">
+	<img src="public/img/typescript-ast-logo.png" alt="@coderrob/typescript-ast logo" />
+</p>
 
-[![Coverage](https://img.shields.io/badge/coverage-95.89%25-brightgreen)](coverage/)
+<h1 align="center">@coderrob/typescript-ast</h1>
 
-Reusable, policy-agnostic AST interpretation helpers for TypeScript analysis.
+<p align="center">Reusable, policy-agnostic AST interpretation helpers for TypeScript analysis.</p>
 
-## What This Package Is
+<p align="center">
+	<a href="coverage/"><img src="https://img.shields.io/badge/coverage-95.89%25-brightgreen" alt="Coverage" /></a>
+</p>
 
-`@coderrob/typescript-ast` is a lightweight utility toolkit for reading and interpreting TypeScript ESTree nodes in rule engines, static-analysis tools, and custom codemod workflows.
+## Overview
 
-It focuses on predictable helpers for:
+`@coderrob/typescript-ast` is a focused utility toolkit for reading and interpreting TypeScript ESTree nodes in:
 
-- call-expression analysis
-- parameter and type-node inspection
-- AST navigation and descendant search
-- statement/value extraction
-- small, composable node guards
+- ESLint rules and custom lint engines
+- static-analysis and architecture checks
+- codemods and source-to-source transforms
+- internal quality tooling and code intelligence workflows
 
-## Why Use It
+The package is intentionally policy-agnostic: it helps you interpret AST shape and semantics without enforcing a particular rule style.
 
-- Reduces repeated AST boilerplate in analysis code.
-- Keeps guard and traversal behavior consistent across projects.
-- Stays policy-agnostic so it can be used in linters, transforms, and audits.
+## Why Teams Use It
+
+- Reduces repetitive AST traversal and narrowing boilerplate.
+- Improves consistency of node interpretation across rule implementations.
+- Encourages small, composable helpers that are easy to test.
+- Keeps utility boundaries clean between parsing logic and policy logic.
 
 ## Installation
 
@@ -32,41 +38,49 @@ npm install @coderrob/typescript-ast
 
 ```ts
 import { getCalleeNamePath, hasMatchingDescendant, isNamedCall } from "@coderrob/typescript-ast";
+
+const path = getCalleeNamePath(callExpression.callee);
+const isTargetCall = isNamedCall(callExpression, "console.log");
+const hasNestedCalls = hasMatchingDescendant(programNode, visitorKeys, (node) => node.type === "CallExpression");
 ```
 
-## API Surface
-
-Exports are grouped by module domain:
+## Module Surface
 
 - `ast/calls`: call-shape and callee-name helpers
-- `ast/navigation`: ancestor and boundary navigation
-- `ast/parameters`: parameter and annotation extraction
+- `ast/navigation`: ancestor and boundary navigation helpers
+- `ast/parameters`: parameter and annotation extraction helpers
 - `ast/search`: visitor-key descendant search helpers
-- `ast/statements`: return and boolean literal extraction
-- `ast/types`: type-reference and wrapper helpers
+- `ast/statements`: return and boolean literal extraction helpers
+- `ast/types`: type-reference and wrapper-expression helpers
 - `guards/nodes`: ESTree node type guards
 - `import-paths`: import-path utility checks
 
-## Quality And Release
+## Quality Gates
 
-- TypeScript declarations are published from `dist`.
-- Tests run on Vitest with Istanbul coverage.
-- Project formatting is Prettier-based.
-- Dependency graph checks are available via madge scripts.
+This package ships with production-grade validation gates:
+
+- TypeScript declarations published from `dist`
+- linting with strict rule configuration
+- full typecheck pass
+- unit tests with Vitest
+- Istanbul coverage thresholds
+- circular dependency checks via madge
+- package-quality linting via publint
+
+Useful scripts:
+
+- `npm run check`
+- `npm run test`
+- `npm run test:coverage`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run deps:circular`
+- `npm run benchmark`
 
 Project docs:
 
 - [Contributing Guide](CONTRIBUTING.md)
 - [Changelog](CHANGELOG.md)
-
-Useful scripts:
-
-- `npm run test`
-- `npm run test -- --coverage`
-- `npm run deps:graph`
-- `npm run deps:circular`
-- `npm run lint`
-- `npm run build`
 
 ## Benchmarks
 
