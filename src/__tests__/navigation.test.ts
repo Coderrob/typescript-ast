@@ -15,7 +15,7 @@ import {
   asFunctionDeclaration,
   asReturnStatement,
   attachParents,
-} from "./helpers";
+} from "./test-helpers";
 
 function parseFnBodyRet(code: string): TSESTree.Statement {
   const ast = parseProgWithParents(code);

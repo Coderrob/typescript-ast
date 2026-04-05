@@ -1,0 +1,26 @@
+site_name: typescript-ast
+site_description: Reusable, policy-agnostic AST interpretation helpers for TypeScript analysis
+site_url: https://github.com/Coderrob/typescript-ast
+repo_name: Coderrob/typescript-ast
+repo_url: https://github.com/Coderrob/typescript-ast
+docs_dir: docs
+theme:
+  name: mkdocs
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Architecture: architecture.md
+  - Guides:
+      - Common Analysis Patterns: guides/common-analysis-patterns.md
+  - API:
+      - Overview: api/index.md
+      - Calls And Navigation: api/calls-and-navigation.md
+      - Parameters, Types, And Statements: api/parameters-types-and-statements.md
+      - Helpers, JSDoc, And Search: api/helpers-jsdoc-and-search.md
+      - Guards And Import Paths: api/guards-and-import-paths.md
+  - Quality And Release: quality-and-release.md
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true

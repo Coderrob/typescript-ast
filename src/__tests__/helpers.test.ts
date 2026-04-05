@@ -25,7 +25,7 @@ import {
   asMethodDefinition,
   asVariableDeclaration,
   attachParents,
-} from "./helpers";
+} from "./test-helpers";
 
 const TWO_CHILDREN = 2;
 const THREE_CHILDREN = 3;

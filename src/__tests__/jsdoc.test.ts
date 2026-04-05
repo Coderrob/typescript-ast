@@ -2,6 +2,7 @@ import { AST_NODE_TYPES, AST_TOKEN_TYPES, TSESTree } from "@typescript-eslint/ty
 import { parse } from "@typescript-eslint/typescript-estree";
 import {
   getJsdocComment,
+  JsdocSourceCodeLike,
   getLineIndentation,
   getParentOwnedTargetNode,
   getTargetNode,
@@ -10,14 +11,9 @@ import {
   isParentOwnedTargetType,
   isStandaloneLineTarget,
 } from "../ast/jsdoc";
-import { asFunctionDeclaration, asFunctionExpression, asVariableDeclaration, attachParents } from "./helpers";
+import { asFunctionDeclaration, asFunctionExpression, asVariableDeclaration, attachParents } from "./test-helpers";
 
 const JSDOC_COMMENT_END_COLUMN = 16;
-
-type SourceCodeLike = {
-  readonly lines: readonly string[];
-  getCommentsBefore(node: Readonly<TSESTree.Node>): readonly TSESTree.Comment[];
-};
 
 function createJsdocComment(): TSESTree.Comment {
   return {
@@ -38,7 +34,7 @@ function createLocationlessNode(type: Readonly<AST_NODE_TYPES>): TSESTree.Node {
   return node;
 }
 
-function createSourceCode(lines: readonly string[], comments: readonly TSESTree.Comment[] = []): SourceCodeLike {
+function createSourceCode(lines: readonly string[], comments: readonly TSESTree.Comment[] = []): JsdocSourceCodeLike {
   return {
     lines,
     getCommentsBefore() {
@@ -108,69 +104,69 @@ describe("jsdoc", () => {
       ).toBe(false);
     });
   });
-});
-describe("target ownership", () => {
-  it("should resolve parent-owned target nodes", () => {
-    const ast = parseProgramWithParents("export default function foo() {}");
-    const exportDefault = ast.body[0];
-    if (exportDefault.type !== AST_NODE_TYPES.ExportDefaultDeclaration) {
-      throw new Error("Expected ExportDefaultDeclaration");
-    }
+  describe("target ownership", () => {
+    it("should resolve parent-owned target nodes", () => {
+      const ast = parseProgramWithParents("export default function foo() {}");
+      const exportDefault = ast.body[0];
+      if (exportDefault.type !== AST_NODE_TYPES.ExportDefaultDeclaration) {
+        throw new Error("Expected ExportDefaultDeclaration");
+      }
 
-    const fn = asFunctionDeclaration(exportDefault.declaration);
-    expect(getParentOwnedTargetNode(fn)).toBe(exportDefault);
-    expect(getTargetNode(fn)).toBe(exportDefault);
+      const fn = asFunctionDeclaration(exportDefault.declaration);
+      expect(getParentOwnedTargetNode(fn)).toBe(exportDefault);
+      expect(getTargetNode(fn)).toBe(exportDefault);
+    });
+
+    it("should resolve variable-owned declaration and export targets", () => {
+      const localFn = parseFunctionExpressionWithParents("const named = function () {};");
+      const localTarget = getVariableOwnedTargetNode(localFn);
+      expect(localTarget?.type).toBe(AST_NODE_TYPES.VariableDeclaration);
+
+      const exportedAst = parseProgramWithParents("export const named = function () {};");
+      const exportNamed = exportedAst.body[0];
+      if (exportNamed.type !== AST_NODE_TYPES.ExportNamedDeclaration) {
+        throw new Error("Expected ExportNamedDeclaration");
+      }
+
+      const exportedFn = asFunctionExpression(asVariableDeclaration(exportNamed.declaration).declarations[0].init);
+      expect(getVariableOwnedTargetNode(exportedFn)).toBe(exportNamed);
+      expect(getTargetNode(exportedFn)).toBe(exportNamed);
+    });
+
+    it("should return declarator when declaration has multiple declarators", () => {
+      const ast = parseProgramWithParents("const first = function () {}, second = 1;");
+      const fn = asFunctionExpression(asVariableDeclaration(ast.body[0]).declarations[0].init);
+      const owner = getVariableOwnedTargetNode(fn);
+      expect(owner?.type).toBe(AST_NODE_TYPES.VariableDeclarator);
+    });
+
+    it("should return declarator when runtime parent is not a variable declaration", () => {
+      const fn = parseFunctionExpressionWithParents("const named = function () {};");
+      const declarator = getVariableOwnedTargetNode(fn);
+      if (declarator === null) {
+        throw new Error("Expected variable declarator");
+      }
+
+      Reflect.set(declarator, "parent", { type: AST_NODE_TYPES.Identifier });
+      expect(getVariableOwnedTargetNode(fn)).toBe(declarator);
+    });
+
+    it("should return null when no parent-owned or variable-owned target exists", () => {
+      const fn = parseFunction("function standalone() {}");
+      expect(getParentOwnedTargetNode(fn)).toBeNull();
+      expect(getVariableOwnedTargetNode(fn)).toBeNull();
+      expect(getTargetNode(fn)).toBe(fn);
+    });
   });
 
-  it("should resolve variable-owned declaration and export targets", () => {
-    const localFn = parseFunctionExpressionWithParents("const named = function () {};");
-    const localTarget = getVariableOwnedTargetNode(localFn);
-    expect(localTarget?.type).toBe(AST_NODE_TYPES.VariableDeclaration);
+  describe("isParentOwnedTargetType", () => {
+    it("should return true for parent-owned AST types", () => {
+      expect(isParentOwnedTargetType(AST_NODE_TYPES.ExportNamedDeclaration)).toBe(true);
+      expect(isParentOwnedTargetType(AST_NODE_TYPES.MethodDefinition)).toBe(true);
+    });
 
-    const exportedAst = parseProgramWithParents("export const named = function () {};");
-    const exportNamed = exportedAst.body[0];
-    if (exportNamed.type !== AST_NODE_TYPES.ExportNamedDeclaration) {
-      throw new Error("Expected ExportNamedDeclaration");
-    }
-
-    const exportedFn = asFunctionExpression(asVariableDeclaration(exportNamed.declaration).declarations[0].init);
-    expect(getVariableOwnedTargetNode(exportedFn)).toBe(exportNamed);
-    expect(getTargetNode(exportedFn)).toBe(exportNamed);
-  });
-
-  it("should return declarator when declaration has multiple declarators", () => {
-    const ast = parseProgramWithParents("const first = function () {}, second = 1;");
-    const fn = asFunctionExpression(asVariableDeclaration(ast.body[0]).declarations[0].init);
-    const owner = getVariableOwnedTargetNode(fn);
-    expect(owner?.type).toBe(AST_NODE_TYPES.VariableDeclarator);
-  });
-
-  it("should return declarator when runtime parent is not a variable declaration", () => {
-    const fn = parseFunctionExpressionWithParents("const named = function () {};");
-    const declarator = getVariableOwnedTargetNode(fn);
-    if (declarator === null) {
-      throw new Error("Expected variable declarator");
-    }
-
-    Reflect.set(declarator, "parent", { type: AST_NODE_TYPES.Identifier });
-    expect(getVariableOwnedTargetNode(fn)).toBe(declarator);
-  });
-
-  it("should return null when no parent-owned or variable-owned target exists", () => {
-    const fn = parseFunction("function standalone() {}");
-    expect(getParentOwnedTargetNode(fn)).toBeNull();
-    expect(getVariableOwnedTargetNode(fn)).toBeNull();
-    expect(getTargetNode(fn)).toBe(fn);
-  });
-});
-
-describe("isParentOwnedTargetType", () => {
-  it("should return true for parent-owned AST types", () => {
-    expect(isParentOwnedTargetType(AST_NODE_TYPES.ExportNamedDeclaration)).toBe(true);
-    expect(isParentOwnedTargetType(AST_NODE_TYPES.MethodDefinition)).toBe(true);
-  });
-
-  it("should return false for non-owned AST types", () => {
-    expect(isParentOwnedTargetType(AST_NODE_TYPES.Identifier)).toBe(false);
+    it("should return false for non-owned AST types", () => {
+      expect(isParentOwnedTargetType(AST_NODE_TYPES.Identifier)).toBe(false);
+    });
   });
 });

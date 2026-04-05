@@ -20,7 +20,7 @@ import {
   asIdentifier,
   asMethodDefinition,
   asRestElement,
-} from "./helpers";
+} from "./test-helpers";
 
 function parseClassCtor(code: string): TSESTree.FunctionExpression {
   const cls = asClassDeclaration(parse(code, { jsx: false }).body[0]);

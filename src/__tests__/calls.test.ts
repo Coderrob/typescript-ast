@@ -12,7 +12,7 @@ import {
   isNamedCall,
   isNamedMemberCall,
 } from "../ast/calls";
-import { asCallExpression, asExpressionStatement } from "./helpers";
+import { asCallExpression, asExpressionStatement } from "./test-helpers";
 
 function parseCallExpr(code: string): TSESTree.CallExpression {
   const ast = parse(code, { jsx: false });

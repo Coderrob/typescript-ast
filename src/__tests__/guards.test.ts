@@ -49,7 +49,7 @@ import {
   asTSTypeAliasDeclaration,
   asTSTypeLiteral,
   asVariableDeclaration,
-} from "./helpers";
+} from "./test-helpers";
 
 const TSE_NUM_DECLARATION_NODE_TYPE = "TSEnumDeclaration";
 const SWITCH_STATEMENT_NODE_TYPE = "SwitchStatement";

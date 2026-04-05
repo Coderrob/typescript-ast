@@ -3,7 +3,7 @@ import { parse } from "@typescript-eslint/typescript-estree";
 import { visitorKeys } from "@typescript-eslint/visitor-keys";
 import { findDescendant, hasMatchingDescendant, hasMatchingDescendantUntil, hasSomeDescendant } from "../ast/search";
 import { isCallExpression, isIdentifier } from "../guards/nodes";
-import { asIdentifier } from "./helpers";
+import { asIdentifier } from "./test-helpers";
 
 const keys = visitorKeys;
 

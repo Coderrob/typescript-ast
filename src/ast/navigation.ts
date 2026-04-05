@@ -1,6 +1,10 @@
-import { isObject, isString } from "@coderrob/typescript-type-guards";
+/**
+ * Ancestor and boundary navigation helpers for ESTree nodes with runtime
+ * parent links.
+ */
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/types";
 import { isBlockStatement, isFunctionLike } from "../guards/nodes";
+import { getNodeParent as getRuntimeNodeParent, getNodeParentOrNull } from "../internal/ast-runtime";
 
 type BoundaryTypes = ReadonlySet<AST_NODE_TYPES> | ReadonlyArray<AST_NODE_TYPES>;
 
@@ -28,7 +32,7 @@ export function findAncestor(
   node: Readonly<TSESTree.Node> | null | undefined,
   predicate: (node: Readonly<TSESTree.Node>) => boolean,
 ): TSESTree.Node | null {
-  for (let parent = getParentOrNull(node); parent !== null; parent = getParentOrNull(parent)) {
+  for (let parent = getNodeParentOrNull(node); parent !== null; parent = getNodeParentOrNull(parent)) {
     if (predicate(parent)) {
       return parent;
     }
@@ -50,7 +54,7 @@ export function findEnclosingFunction(
   | TSESTree.ArrowFunctionExpression
   | TSESTree.TSDeclareFunction
   | null {
-  for (let parent = getParentOrNull(node); parent !== null; parent = getParentOrNull(parent)) {
+  for (let parent = getNodeParentOrNull(node); parent !== null; parent = getNodeParentOrNull(parent)) {
     if (isFunctionLike(parent)) {
       return parent;
     }
@@ -98,8 +102,7 @@ export function getNextStatementInBlock(
  * @returns The parent node, or undefined if none.
  */
 export function getNodeParent(node: Readonly<TSESTree.Node>): TSESTree.Node | undefined {
-  const parent: unknown = Reflect.get(node, "parent");
-  return isAstNode(parent) ? parent : undefined;
+  return getRuntimeNodeParent(node);
 }
 
 /**
@@ -111,15 +114,6 @@ export function getParentBlockStatement(
   node: Readonly<TSESTree.Node> | null | undefined,
 ): TSESTree.BlockStatement | null {
   return findAncestor(node, isBlockStatement);
-}
-
-/**
- * Get a node parent as nullable value.
- * @param node - The node to inspect.
- * @returns The parent node, or null.
- */
-function getParentOrNull(node: Readonly<TSESTree.Node> | null | undefined): TSESTree.Node | null {
-  return node ? (getNodeParent(node) ?? null) : null;
 }
 
 /**
@@ -140,15 +134,6 @@ function hasBoundaryType(types: Readonly<BoundaryTypes>, expectedType: Readonly<
  */
 function hasBoundaryTypeInArray(types: ReadonlyArray<AST_NODE_TYPES>, expectedType: Readonly<AST_NODE_TYPES>): boolean {
   return types.includes(expectedType);
-}
-
-/**
- * Check whether a value is an AST node.
- * @param value - The value to inspect.
- * @returns True when the value is node-like.
- */
-function isAstNode(value: unknown): value is TSESTree.Node {
-  return isObject(value) && "type" in value && isString(Reflect.get(value, "type"));
 }
 
 /**

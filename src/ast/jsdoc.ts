@@ -1,10 +1,11 @@
+/**
+ * Helpers for resolving JSDoc ownership and source-line placement for
+ * function-like nodes.
+ */
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/types";
-import { FunctionNode, isNodeLike, isVariableDeclarator } from "../guards/nodes";
-
-type SourceCodeLike = {
-  readonly lines: readonly string[];
-  getCommentsBefore(node: Readonly<TSESTree.Node>): readonly TSESTree.Comment[];
-};
+import { FunctionNode, isVariableDeclarator } from "../guards/nodes";
+import { getNodeParentOrNull } from "../internal/ast-runtime";
+import { getLineIndentationPrefix, getNodeLinePrefix, getNodeLineText } from "../internal/source-code";
 
 const JSDOC_BLOCK_MARKER = "*";
 const BLOCK_COMMENT_TYPE = "Block";
@@ -18,13 +19,21 @@ const PARENT_OWNED_TARGET_TYPES = new Set<AST_NODE_TYPES>([
 ]);
 
 /**
+ * Public source-code contract for JSDoc helpers that read line text and comments.
+ */
+export type JsdocSourceCodeLike = {
+  readonly lines: readonly string[];
+  getCommentsBefore(node: Readonly<TSESTree.Node>): readonly TSESTree.Comment[];
+};
+
+/**
  * Get the nearest preceding JSDoc comment for a node.
  * @param sourceCode - The source-code-like object to inspect.
  * @param node - The node to inspect.
  * @returns The nearest JSDoc comment, or null.
  */
 export function getJsdocComment(
-  sourceCode: Readonly<SourceCodeLike>,
+  sourceCode: Readonly<JsdocSourceCodeLike>,
   node: Readonly<TSESTree.Node>,
 ): TSESTree.Comment | null {
   const jsdocComments = sourceCode.getCommentsBefore(node).filter(isJsdocBlockComment);
@@ -37,22 +46,9 @@ export function getJsdocComment(
  * @param node - The node whose line should be inspected.
  * @returns The indentation prefix, or an empty string when location data is unavailable.
  */
-export function getLineIndentation(sourceCode: Readonly<SourceCodeLike>, node: Readonly<TSESTree.Node>): string {
-  const start = getNodeStart(node);
-  if (start === null) {
-    return "";
-  }
-  const lineText = sourceCode.lines[start.line - 1] ?? "";
-  return lineText.slice(0, lineText.length - lineText.trimStart().length);
-}
-
-/**
- * Get a node start location when source locations are available.
- * @param node - The node to inspect.
- * @returns The node start location, or null when unavailable.
- */
-function getNodeStart(node: Readonly<TSESTree.Node>): TSESTree.Position | null {
-  return node.loc?.start ?? null;
+export function getLineIndentation(sourceCode: Readonly<JsdocSourceCodeLike>, node: Readonly<TSESTree.Node>): string {
+  const lineText = getNodeLineText(sourceCode, node);
+  return lineText === null ? "" : getLineIndentationPrefix(lineText);
 }
 
 /**
@@ -61,18 +57,8 @@ function getNodeStart(node: Readonly<TSESTree.Node>): TSESTree.Position | null {
  * @returns The owning parent node, or null.
  */
 export function getParentOwnedTargetNode(node: Readonly<FunctionNode>): TSESTree.Node | null {
-  const parent = getRuntimeParent(node);
+  const parent = getNodeParentOrNull(node);
   return parent !== null && isParentOwnedTargetType(parent.type) ? parent : null;
-}
-
-/**
- * Read a runtime parent reference from a node.
- * @param node - The node whose parent should be read.
- * @returns The runtime parent node, or null.
- */
-function getRuntimeParent(node: Readonly<TSESTree.Node>): TSESTree.Node | null {
-  const parent: unknown = Reflect.get(node, "parent");
-  return isNodeLike(parent) ? parent : null;
 }
 
 /**
@@ -90,12 +76,12 @@ export function getTargetNode(node: Readonly<FunctionNode>): TSESTree.Node {
  * @returns The owning node for JSDoc placement.
  */
 function getVariableOwnedTargetFromDeclarator(declarator: Readonly<TSESTree.VariableDeclarator>): TSESTree.Node {
-  const declaration = getRuntimeParent(declarator);
+  const declaration = getNodeParentOrNull(declarator);
   if (!isSingleVariableDeclaration(declaration)) {
     return declarator;
   }
 
-  const declarationParent = getRuntimeParent(declaration);
+  const declarationParent = getNodeParentOrNull(declaration);
   return isExportNamedDeclarationNode(declarationParent) ? declarationParent : declaration;
 }
 
@@ -105,7 +91,7 @@ function getVariableOwnedTargetFromDeclarator(declarator: Readonly<TSESTree.Vari
  * @returns The owning declaration node, declarator, or null.
  */
 export function getVariableOwnedTargetNode(node: Readonly<FunctionNode>): TSESTree.Node | null {
-  const parent = getRuntimeParent(node);
+  const parent = getNodeParentOrNull(node);
   if (!isVariableDeclarator(parent)) {
     return null;
   }
@@ -155,12 +141,14 @@ function isSingleVariableDeclaration(node: Readonly<TSESTree.Node> | null): node
  * @param node - The node to inspect.
  * @returns True when the node starts on a standalone line and location data is available.
  */
-export function isStandaloneLineTarget(sourceCode: Readonly<SourceCodeLike>, node: Readonly<TSESTree.Node>): boolean {
-  const start = getNodeStart(node);
-  if (start === null) {
+export function isStandaloneLineTarget(
+  sourceCode: Readonly<JsdocSourceCodeLike>,
+  node: Readonly<TSESTree.Node>,
+): boolean {
+  const prefix = getNodeLinePrefix(sourceCode, node);
+  if (prefix === null) {
     return false;
   }
-  const lineText = sourceCode.lines[start.line - 1] ?? "";
-  const prefix = lineText.slice(0, start.column);
+
   return prefix.trim().length === 0;
 }

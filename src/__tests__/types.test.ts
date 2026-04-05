@@ -16,7 +16,7 @@ import {
   asTSTypeLiteral,
   asTSTypeReference,
   asVariableDeclaration,
-} from "./helpers";
+} from "./test-helpers";
 
 function parseExpr(code: string): TSESTree.Expression {
   return asExpressionStatement(parse(code, { jsx: false }).body[0]).expression;

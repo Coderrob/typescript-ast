@@ -7,7 +7,7 @@ import {
   getReturnStatement,
   getSingleReturnStatement,
 } from "../ast/statements";
-import { asBlockStatement, asExpressionStatement, asFunctionDeclaration, attachParents } from "./helpers";
+import { asBlockStatement, asExpressionStatement, asFunctionDeclaration, attachParents } from "./test-helpers";
 
 function parseExpr(code: string): TSESTree.Expression {
   return asExpressionStatement(parseProg(`${code};`).body[0]).expression;

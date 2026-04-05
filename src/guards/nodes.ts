@@ -1,5 +1,6 @@
-import { isObject, isString } from "@coderrob/typescript-type-guards";
+import { isString } from "@coderrob/typescript-type-guards";
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/types";
+import { isAstNode } from "../internal/ast-runtime";
 
 export type FunctionNode =
   | TSESTree.ArrowFunctionExpression
@@ -113,7 +114,7 @@ export function isNamedIdentifier(node: TSESTree.Node | null | undefined, name: 
  * @returns True if the value has a string `type` property.
  */
 export function isNodeLike(value: unknown): value is TSESTree.Node {
-  return isObject(value) && "type" in value && isString(Reflect.get(value, "type"));
+  return isAstNode(value);
 }
 
 /**
@@ -287,6 +288,9 @@ export function isVariableDeclarator(node: TSESTree.Node | null | undefined): no
   return node?.type === AST_NODE_TYPES.VariableDeclarator;
 }
 
+/**
+ * Compatibility aliases for previous guard export names.
+ */
 export const isBinaryExpressionNode = isBinaryExpression;
 export const isBlockStatementNode = isBlockStatement;
 export const isCallExpressionNode = isCallExpression;

@@ -1,7 +1,15 @@
-import { isObject, isString } from "@coderrob/typescript-type-guards";
+/**
+ * Depth-first descendant search helpers driven by ESTree visitor-key metadata.
+ */
 import { TSESTree } from "@typescript-eslint/types";
+import { getVisitorChildNodes } from "../internal/visitor-children";
 
-type Stack = null | { readonly head: TSESTree.Node; readonly tail: Stack };
+type TraversalStack = null | { readonly head: TSESTree.Node; readonly tail: TraversalStack };
+
+/**
+ * Public visitor-key map contract used by the search helpers.
+ */
+export type SearchVisitorKeyMapLike = Readonly<Record<string, readonly string[] | undefined>>;
 
 /**
  * Build a linked-list DFS stack from a nodes array, prepending nodes in traversal order.
@@ -9,8 +17,8 @@ type Stack = null | { readonly head: TSESTree.Node; readonly tail: Stack };
  * @param tail - The existing stack to append the new nodes in front of.
  * @returns A new stack with nodes prepended in traversal order.
  */
-function buildStack(nodes: readonly TSESTree.Node[], tail: Readonly<Stack>): Stack {
-  let result: Stack = tail;
+function buildStack(nodes: readonly TSESTree.Node[], tail: Readonly<TraversalStack>): TraversalStack {
+  let result: TraversalStack = tail;
   for (let index = nodes.length - 1; index >= 0; index -= 1) {
     result = { head: nodes[index], tail: result };
   }
@@ -27,10 +35,10 @@ function buildStack(nodes: readonly TSESTree.Node[], tail: Readonly<Stack>): Sta
  */
 function extendStackWithChildren(
   node: Readonly<TSESTree.Node>,
-  visitorKeys: Readonly<Record<string, readonly string[] | undefined>>,
-  stack: Readonly<Stack>,
+  visitorKeys: Readonly<SearchVisitorKeyMapLike>,
+  stack: Readonly<TraversalStack>,
   stopPredicate: ((node: Readonly<TSESTree.Node>) => boolean) | undefined,
-): Stack {
+): TraversalStack {
   if (shouldStopTraversal(stopPredicate, node)) {
     return stack;
   }
@@ -48,7 +56,7 @@ function extendStackWithChildren(
  */
 export function findDescendant(
   node: Readonly<TSESTree.Node>,
-  visitorKeys: Readonly<Record<string, readonly string[] | undefined>>,
+  visitorKeys: Readonly<SearchVisitorKeyMapLike>,
   predicate: (node: Readonly<TSESTree.Node>) => boolean,
   stopPredicate?: (node: Readonly<TSESTree.Node>) => boolean,
 ): TSESTree.Node | null {
@@ -72,51 +80,8 @@ export function findDescendant(
  * @param visitorKeys - The visitor keys map.
  * @returns The direct child AST nodes.
  */
-function getChildNodes(
-  node: Readonly<TSESTree.Node>,
-  visitorKeys: Readonly<Record<string, readonly string[] | undefined>>,
-): TSESTree.Node[] {
-  return getChildNodesForKeys(node, visitorKeys[node.type] ?? []);
-}
-
-/**
- * Collect child AST nodes across a list of visitor keys.
- * @param node - The node to inspect.
- * @param keys - The visitor keys to process.
- * @returns The collected child AST nodes.
- */
-function getChildNodesForKeys(node: Readonly<TSESTree.Node>, keys: readonly string[]): TSESTree.Node[] {
-  /**
-   * Resolve child nodes for one visitor key on the current node.
-   * @param key - The visitor key to read from the node.
-   * @returns The child AST nodes for that key.
-   */
-  function getChildNodesForKey(key: string): TSESTree.Node[] {
-    return getChildrenForKey(node, key);
-  }
-  return keys.flatMap(getChildNodesForKey);
-}
-
-/**
- * Get child AST nodes for a specific visitor key.
- * @param node - The node to inspect.
- * @param key - The visitor key to read.
- * @returns The child AST nodes for that key.
- */
-function getChildrenForKey(node: Readonly<TSESTree.Node>, key: string): TSESTree.Node[] {
-  return [...getChildrenForKeyValue(Reflect.get(node, key))];
-}
-
-/**
- * Normalize one visitor-key value into AST child nodes.
- * @param value - The visitor-key value to inspect.
- * @returns The child AST nodes for that value.
- */
-function getChildrenForKeyValue(value: unknown): readonly TSESTree.Node[] {
-  if (Array.isArray(value)) {
-    return value.filter(isAstNode);
-  }
-  return isAstNode(value) ? [value] : [];
+function getChildNodes(node: Readonly<TSESTree.Node>, visitorKeys: Readonly<SearchVisitorKeyMapLike>): TSESTree.Node[] {
+  return getVisitorChildNodes(node, visitorKeys);
 }
 
 /**
@@ -128,7 +93,7 @@ function getChildrenForKeyValue(value: unknown): readonly TSESTree.Node[] {
  */
 export function hasMatchingDescendant(
   node: Readonly<TSESTree.Node>,
-  visitorKeys: Readonly<Record<string, readonly string[] | undefined>>,
+  visitorKeys: Readonly<SearchVisitorKeyMapLike>,
   predicate: (node: Readonly<TSESTree.Node>) => boolean,
 ): boolean {
   return findDescendant(node, visitorKeys, predicate) !== null;
@@ -144,7 +109,7 @@ export function hasMatchingDescendant(
  */
 export function hasMatchingDescendantUntil(
   node: Readonly<TSESTree.Node>,
-  visitorKeys: Readonly<Record<string, readonly string[] | undefined>>,
+  visitorKeys: Readonly<SearchVisitorKeyMapLike>,
   predicate: (node: Readonly<TSESTree.Node>) => boolean,
   stopPredicate: (node: Readonly<TSESTree.Node>) => boolean,
 ): boolean {
@@ -161,20 +126,11 @@ export function hasMatchingDescendantUntil(
  */
 export function hasSomeDescendant(
   node: Readonly<TSESTree.Node>,
-  visitorKeys: Readonly<Record<string, readonly string[] | undefined>>,
+  visitorKeys: Readonly<SearchVisitorKeyMapLike>,
   predicate: (node: Readonly<TSESTree.Node>) => boolean,
   stopPredicate?: (node: Readonly<TSESTree.Node>) => boolean,
 ): boolean {
   return findDescendant(node, visitorKeys, predicate, stopPredicate) !== null;
-}
-
-/**
- * Check whether a value is an AST node.
- * @param value - The value to inspect.
- * @returns True when the value is node-like.
- */
-function isAstNode(value: unknown): value is TSESTree.Node {
-  return isObject(value) && "type" in value && isString(Reflect.get(value, "type"));
 }
 
 /**

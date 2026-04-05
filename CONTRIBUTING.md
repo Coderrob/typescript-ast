@@ -28,6 +28,19 @@ npm install
 - Linting is managed by ESLint.
 - Keep helpers small, composable, and policy-agnostic.
 
+## Code Organization
+
+- Put supported product APIs in `src/ast`, `src/guards`, and other root-level public modules exported from `src/index.ts`.
+- Keep implementation details in `src/internal`; do not leak internal-only types into the public API surface.
+- Use descriptive kebab-case file names.
+- Reserve `test-helpers` naming for test-only utilities to avoid confusion with product modules.
+
+## Documentation Expectations
+
+- Add or update JSDoc for behavior that is non-obvious, contract-heavy, or edge-case sensitive.
+- Keep MkDocs pages aligned with the public modules and exported contract types.
+- Update product documentation when public behavior, naming, or required inputs change.
+
 ## Tests
 
 - Add tests under `src/__tests__`.

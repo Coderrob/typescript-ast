@@ -1,3 +1,7 @@
+/**
+ * General-purpose AST helper functions that stay policy-agnostic and compose
+ * with the narrower modules in this package.
+ */
 import { isPlainObject, isString } from "@coderrob/typescript-type-guards";
 import { TSESTree } from "@typescript-eslint/types";
 import {
@@ -6,9 +10,10 @@ import {
   isIdentifier,
   isMemberExpression,
   isMethodDefinition,
-  isNodeLike,
   isVariableDeclarator,
 } from "../guards/nodes";
+import { getNodeParentOrNull } from "../internal/ast-runtime";
+import { getVisitorChildNodes as collectVisitorChildNodes } from "../internal/visitor-children";
 
 const ANONYMOUS_FUNCTION_NAME = "<anonymous>";
 const LITERAL_NODE_TYPE = "Literal";
@@ -22,7 +27,10 @@ type MemberExpressionLike = {
   };
 };
 
-type SourceCodeVisitorKeysLike = {
+/**
+ * Public source-code contract for helpers that read visitor-key metadata.
+ */
+export type VisitorKeySourceCodeLike = {
   readonly visitorKeys: Readonly<Record<string, readonly string[] | undefined>>;
 };
 
@@ -59,7 +67,7 @@ export function getFunctionDeclarationName(node: Readonly<FunctionNode>): string
  * @returns The method name, or null.
  */
 export function getFunctionMethodName(node: Readonly<FunctionNode>): string | null {
-  const parent = getRuntimeParent(node);
+  const parent = getNodeParentOrNull(node);
   return isMethodDefinition(parent) ? getIdentifierName(parent.key) : null;
 }
 
@@ -69,7 +77,7 @@ export function getFunctionMethodName(node: Readonly<FunctionNode>): string | nu
  * @returns The variable name, or null.
  */
 export function getFunctionVariableName(node: Readonly<FunctionNode>): string | null {
-  const parent = getRuntimeParent(node);
+  const parent = getNodeParentOrNull(node);
   return isVariableDeclarator(parent) ? getIdentifierName(parent.id) : null;
 }
 
@@ -135,16 +143,6 @@ export function getOptionMaxValue(option: unknown): unknown {
 }
 
 /**
- * Read a runtime parent reference from a node.
- * @param node - The node whose parent should be read.
- * @returns The runtime parent node, or null.
- */
-function getRuntimeParent(node: Readonly<TSESTree.Node>): TSESTree.Node | null {
-  const parent: unknown = Reflect.get(node, "parent");
-  return isNodeLike(parent) ? parent : null;
-}
-
-/**
  * Resolve a member property name from non-computed access.
  * @param node - The member expression-like node to inspect.
  * @returns The property name, or null.
@@ -156,35 +154,14 @@ function getUncomputedMemberPropertyName(node: Readonly<MemberExpressionLike>): 
 /**
  * Collect direct child AST nodes using visitor keys.
  * @param node - The node to inspect.
- * @param sourceCode - An object exposing visitor keys.
+ * @param sourceCode - A source-code-like object exposing visitor keys.
  * @returns The traversable child nodes.
  */
 export function getVisitorChildNodes(
   node: Readonly<TSESTree.Node>,
-  sourceCode: Readonly<SourceCodeVisitorKeysLike>,
+  sourceCode: Readonly<VisitorKeySourceCodeLike>,
 ): ReadonlyArray<TSESTree.Node> {
-  const visitorKeys = sourceCode.visitorKeys[node.type] ?? [];
-  /**
-   * Resolve child nodes for one visitor key on the current node.
-   * @param key - The visitor key to read from the node.
-   * @returns The child nodes exposed by that visitor key.
-   */
-  function getVisitorNodesForKey(key: string): readonly TSESTree.Node[] {
-    return getVisitorKeyNodes(Reflect.get(node, key));
-  }
-  return visitorKeys.flatMap(getVisitorNodesForKey);
-}
-
-/**
- * Normalize one visitor-key value into AST child nodes.
- * @param value - The visitor-key value to inspect.
- * @returns The child AST nodes for that value.
- */
-function getVisitorKeyNodes(value: unknown): readonly TSESTree.Node[] {
-  if (Array.isArray(value)) {
-    return value.filter(isNodeLike);
-  }
-  return isNodeLike(value) ? [value] : [];
+  return collectVisitorChildNodes(node, sourceCode.visitorKeys);
 }
 
 /**

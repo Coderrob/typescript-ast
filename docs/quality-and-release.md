@@ -1,0 +1,55 @@
+# Quality And Release
+
+## Tooling
+
+The project uses:
+
+- TypeScript for builds and declarations
+- ESLint for code-quality rules
+- Prettier for formatting
+- Vitest for tests
+- Istanbul coverage through `vitest --coverage`
+- madge for dependency-graph and circular-dependency checks
+
+## Common Commands
+
+```bash
+npm run build
+npm run lint
+npm run typecheck
+npm run test
+npm run test:coverage
+npm run check
+```
+
+## Release-Oriented Commands
+
+```bash
+npm run deps:graph
+npm run deps:circular
+npm run pack:dry-run
+npm run publint
+```
+
+## Publishing Model
+
+- package name: `@coderrob/typescript-ast`
+- public package access
+- distributable output published from `dist`
+- Node.js engine floor: 18+
+
+## Documentation Sources
+
+Repository-level docs also live in:
+
+- [`README.md`](../README.md)
+- [`CONTRIBUTING.md`](../CONTRIBUTING.md)
+- [`CHANGELOG.md`](../CHANGELOG.md)
+
+## Notes For Maintainers
+
+- keep public API docs aligned with `src/index.ts`
+- treat `src/internal` as private implementation detail
+- keep structural contract types defined at the public module boundary, not in `src/internal`
+- use descriptive kebab-case file names and reserve `test-helpers` naming for test-only utilities
+- prefer additive docs updates when public behavior changes
