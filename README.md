@@ -48,7 +48,7 @@ const hasNestedCalls = hasMatchingDescendant(programNode, visitorKeys, (node) =>
 
 ## Entry Points
 
-Use the package root when you want the full current API surface.
+Use the package root when you want the full current API surface and compatibility with existing consumers.
 
 Use `@coderrob/typescript-ast/core` when you want the structural AST helpers without the TypeScript-specific parameter and type helpers:
 
@@ -81,6 +81,8 @@ The library is intentionally split conceptually into:
 
 - core structural helpers: `calls`, `helpers`, `jsdoc`, `navigation`, `search`, `statements`, generic guards, and import-path utilities
 - TypeScript-specific extensions: `parameters`, `types`, and TS-prefixed node guards
+
+If you want the cleanest mental model, prefer `@coderrob/typescript-ast/core` for structural AST work and add `@coderrob/typescript-ast/typescript` only when you actually need TS-specific node semantics.
 
 ## Functionality
 
@@ -160,6 +162,7 @@ Project docs:
 
 - [Contributing Guide](CONTRIBUTING.md)
 - [Changelog](CHANGELOG.md)
+- [Architecture](docs/architecture.md)
 
 ## Benchmarks
 
