@@ -8,7 +8,7 @@
   "dependencies": {
     "@coderrob/typescript-type-guards": "^1.0.1"
   },
-  "description": "Reusable, policy-agnostic AST interpretation helpers for TypeScript analysis",
+  "description": "Policy-agnostic AST navigation helpers with optional TypeScript ESTree extensions",
   "devDependencies": {
     "@coderrob/eslint-plugin-zero-tolerance": "^1.2.3",
     "@emnapi/core": "^1.9.2",
@@ -21,7 +21,6 @@
     "@typescript-eslint/typescript-estree": "^8.0.0",
     "@typescript-eslint/visitor-keys": "^8.0.0",
     "@vitest/coverage-istanbul": "^4.1.2",
-    "esbuild": "^0.27.7",
     "eslint": "^10.2.0",
     "husky": "^9.1.7",
     "jscpd": "^4.0.8",
@@ -31,6 +30,7 @@
     "publint": "^0.3.18",
     "rimraf": "^6.1.3",
     "tinybench": "^6.0.0",
+    "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "vitest": "^4.1.2"
   },
@@ -48,6 +48,28 @@
         "default": "./dist/index.cjs"
       },
       "default": "./dist/index.cjs"
+    },
+    "./core": {
+      "import": {
+        "types": "./dist/core.d.mts",
+        "default": "./dist/core.mjs"
+      },
+      "require": {
+        "types": "./dist/core.d.cts",
+        "default": "./dist/core.cjs"
+      },
+      "default": "./dist/core.cjs"
+    },
+    "./typescript": {
+      "import": {
+        "types": "./dist/typescript.d.mts",
+        "default": "./dist/typescript.mjs"
+      },
+      "require": {
+        "types": "./dist/typescript.d.cts",
+        "default": "./dist/typescript.cjs"
+      },
+      "default": "./dist/typescript.cjs"
     }
   },
   "files": [
@@ -89,30 +111,25 @@
     "url": "git+https://github.com/Coderrob/typescript-ast.git"
   },
   "scripts": {
-    "benchmark": "npm run benchmark:run",
-    "benchmark:check": "node benchmarks/check-coverage.js",
-    "benchmark:run": "npm run benchmark:check && npm run build && node benchmarks/index.js",
-    "build": "npm run clean && npm run build:types && npm run build:types:dual && npm run build:js:esm && npm run build:js:cjs",
-    "build:js:cjs": "esbuild src/index.ts --bundle --platform=node --format=cjs --packages=external --minify --sourcemap --outfile=dist/index.cjs",
-    "build:js:esm": "esbuild src/index.ts --bundle --platform=node --format=esm --packages=external --minify --sourcemap --outfile=dist/index.mjs",
-    "build:types": "tsc -p tsconfig.build.json",
-    "build:types:dual": "node -e \"const fs=require('node:fs');fs.copyFileSync('dist/index.d.ts','dist/index.d.mts');fs.copyFileSync('dist/index.d.ts','dist/index.d.cts');\"",
-    "check": "npm run format:check && npm run lint && npm run duplication && npm run typecheck && npm run test:coverage",
+    "bench": "npm run bench:check && npm run build && node benchmarks/index.js",
+    "bench:check": "node benchmarks/check-coverage.js",
+    "build": "npm run clean && tsup --config tsup.config.ts && tsc -p tsconfig.build.json && node scripts/build-types-dual.mjs",
+    "ci": "npm run bench:check && npm run quality && npm run build && npm run deps:circular && npm run publint && npm run pack:dry-run",
+    "duplication": "jscpd src/ast src/guards src/internal src/index.ts src/core.ts src/typescript.ts src/import-paths.ts --min-lines 5 --min-tokens 50 --threshold 1 --reporters console",
+    "quality": "npm run format:check && npm run lint && npm run duplication && npm run typecheck && npm run test:coverage",
     "clean": "rimraf dist coverage",
-    "deps:circular": "madge --circular --extensions ts src/index.ts",
-    "deps:graph": "madge --extensions ts src/index.ts",
-    "duplication": "jscpd src/ast src/guards src/internal src/index.ts src/import-paths.ts --min-lines 5 --min-tokens 50 --threshold 1 --reporters console",
+    "deps:circular": "madge --circular --extensions ts src/index.ts src/core.ts src/typescript.ts",
+    "deps:graph": "madge --extensions ts src/index.ts src/core.ts src/typescript.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
-    "pack:dry-run": "npm run release:pack:dry-run",
+    "pack:dry-run": "npm pack --dry-run",
     "prepare": "husky",
+    "prepublishOnly": "npm run release",
     "publish:package": "npm publish",
-    "prepublishOnly": "npm run release:prepublish",
     "publint": "publint",
-    "release:pack:dry-run": "npm pack --dry-run",
-    "release:prepublish": "npm run clean && npm run build && npm run check && npm run deps:circular && npm run publint",
+    "release": "npm run quality && npm run build && npm run deps:circular && npm run publint",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",

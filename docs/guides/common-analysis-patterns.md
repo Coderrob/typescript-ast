@@ -1,11 +1,15 @@
 # Common Analysis Patterns
 
-## Find A Named Call
+## Core Structural Patterns
+
+These patterns work toward a neutral AST-navigation style. They focus on traversing structure and resolving stable shapes before any TypeScript-specific interpretation.
+
+### Find A Named Call
 
 Use `isNamedCall(...)` when you want exact matching against a static callee path.
 
 ```ts
-import { isNamedCall } from "@coderrob/typescript-ast";
+import { isNamedCall } from "@coderrob/typescript-ast/core";
 
 if (node.type === "CallExpression" && isNamedCall(node, "console.error")) {
   // matched console.error(...)
@@ -18,11 +22,13 @@ This only matches statically resolvable identifier and member-expression callees
 - `test.each()()` does not match `isNamedCall(...)` because the call's callee is itself a `CallExpression`
 - `foo().bar()` does not resolve and returns `null` through path helpers
 
-## Read A Callee Path
+### Read A Callee Path
 
 Use `getCalleeNamePath(...)` when you need the resolved string form.
 
 ```ts
+import { getCalleeNamePath } from "@coderrob/typescript-ast/core";
+
 const name = getCalleeNamePath(call.callee);
 if (name === "logger.info") {
   // ...
@@ -37,13 +43,13 @@ Examples:
 - `test.each()()` resolves to `test.each`
 - `foo().bar()` returns `null`
 
-## Search Descendants Safely
+### Search Descendants Safely
 
 Use `findDescendant(...)` with visitor keys when you need to inspect nested shapes.
 
 ```ts
 import { visitorKeys } from "@typescript-eslint/visitor-keys";
-import { findDescendant, isIdentifier } from "@coderrob/typescript-ast";
+import { findDescendant, isIdentifier } from "@coderrob/typescript-ast/core";
 
 const match = findDescendant(node, visitorKeys, isIdentifier);
 ```
@@ -54,7 +60,7 @@ You can also stop traversal into unwanted subtrees:
 const match = findDescendant(node, visitorKeys, predicate, (child) => child.type === "FunctionExpression");
 ```
 
-## Walk Up To Structural Boundaries
+### Walk Up To Structural Boundaries
 
 Use `findAncestor(...)`, `findEnclosingFunction(...)`, and `isInsideBoundary(...)` when rules depend on context.
 
@@ -64,18 +70,7 @@ Examples:
 - whether a node is inside a loop or callback
 - whether a match boundary appears before a stop boundary
 
-## Read Parameter Shapes
-
-Use the parameter helpers when reading function signatures:
-
-- `getFirstNonThisParameter(...)`
-- `getNamedParameterIdentifier(...)`
-- `getParameterTypeAnnotation(...)`
-- `getObjectDestructuredParameterTypeNode(...)`
-
-These helpers normalize several ESTree parameter forms so you do not have to repeat the same branching logic.
-
-## Extract Simple Return Information
+### Extract Simple Return Information
 
 Use the statements helpers for rules that care about obvious boolean returns.
 
@@ -86,7 +81,7 @@ if (value === true) {
 }
 ```
 
-## Work With JSDoc Ownership
+### Work With JSDoc Ownership
 
 Use `getTargetNode(...)` and `getVariableOwnedTargetNode(...)` to determine where documentation should attach for function-like nodes.
 
@@ -96,7 +91,38 @@ This is useful when a function is:
 - a method
 - a single exported variable initializer
 
-## Prefer Guards Plus Helpers
+## TypeScript-Specific Patterns
+
+These helpers are useful when you are intentionally analyzing TypeScript ESTree extensions rather than neutral AST structure.
+
+### Read Parameter Shapes
+
+Use the parameter helpers when reading function signatures:
+
+- `getFirstNonThisParameter(...)`
+- `getNamedParameterIdentifier(...)`
+- `getParameterTypeAnnotation(...)`
+- `getObjectDestructuredParameterTypeNode(...)`
+
+These helpers normalize several ESTree parameter forms so you do not have to repeat the same branching logic.
+
+```ts
+import { getParameterTypeAnnotation } from "@coderrob/typescript-ast/typescript";
+```
+
+### Unwrap TypeScript Wrapper Expressions
+
+Use `unwrapTsExpression(...)` when you need the runtime expression underneath TypeScript-only wrappers such as:
+
+- `as`
+- non-null assertions
+- `satisfies`
+
+```ts
+import { unwrapTsExpression } from "@coderrob/typescript-ast/typescript";
+```
+
+### Prefer Guards Plus Helpers
 
 A reliable pattern in this package is:
 

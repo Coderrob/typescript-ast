@@ -1,6 +1,6 @@
 # typescript-ast
 
-`@coderrob/typescript-ast` is a small utility library for reading and interpreting TypeScript ESTree nodes.
+`@coderrob/typescript-ast` is a small utility library for navigating AST structure, with optional TypeScript ESTree-specific helpers layered on top.
 
 It is designed for:
 
@@ -10,6 +10,15 @@ It is designed for:
 - custom repository audits
 
 The package stays deliberately policy-agnostic. It does not decide whether a pattern is good or bad; it helps you inspect AST structure consistently.
+
+## Product Shape
+
+The package has two layers:
+
+- a core structural layer for AST navigation, descendant search, call-shape inspection, and general-purpose guards
+- a TypeScript extension layer for parameter annotations, TS wrapper expressions, and TS-specific node kinds
+
+That split exists to keep the package useful as a general AST-navigation toolkit while still supporting TypeScript-focused analysis when needed.
 
 ## What It Provides
 
@@ -53,6 +62,15 @@ The package exports:
 - `import-paths`
 
 Internal files under `src/internal` are implementation details and are not part of the supported public API.
+
+## Entry Points
+
+The root package export keeps the full API surface for backward compatibility.
+
+The package also exposes:
+
+- `@coderrob/typescript-ast/core` for the structural AST helpers
+- `@coderrob/typescript-ast/typescript` for the TypeScript-specific extensions
 
 ## Next Steps
 
