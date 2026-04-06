@@ -4,7 +4,7 @@ Thanks for contributing to `@coderrob/typescript-ast`.
 
 ## Development Setup
 
-1. Use Node.js 18+.
+1. Use Node.js 20.19+ for repository development and verification.
 2. Install dependencies:
 
 ```bash
