@@ -22,9 +22,6 @@ import {
   asRestElement,
 } from "./test-helpers";
 
-const ASSIGNMENT_PATTERN_NODE_TYPE = "AssignmentPattern";
-const IDENTIFIER_NODE_TYPE = "Identifier";
-
 function parseClassCtor(code: string): TSESTree.FunctionExpression {
   const cls = asClassDeclaration(parse(code, { jsx: false }).body[0]);
   return asFunctionExpression(asMethodDefinition(cls.body.body[0]).value);
@@ -40,12 +37,10 @@ function testAdditionalTypeAnnotationBranches(): void {
   });
 
   it("should return null when assignment-pattern left typeAnnotation is not TSTypeAnnotation", () => {
-    const param = parseFn("function f(x = value) {}").params[0];
-    if (param.type !== ASSIGNMENT_PATTERN_NODE_TYPE || param.left.type !== IDENTIFIER_NODE_TYPE) {
-      throw new Error("Expected assignment pattern with identifier left side");
-    }
+    const param = asAssignmentPattern(parseFn("function f(x = value) {}").params[0]);
+    const left = asIdentifier(param.left);
 
-    Reflect.set(param.left, "typeAnnotation", { type: "Identifier" });
+    Reflect.set(left, "typeAnnotation", { type: "Identifier" });
     expect(getParameterTypeAnnotation(param)).toBeNull();
   });
 }
