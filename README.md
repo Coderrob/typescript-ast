@@ -112,7 +112,8 @@ const runtimeExpression = unwrapTsExpression(expression);
 This package ships with production-grade validation gates:
 
 - TypeScript declarations published from `dist`
-- linting with strict rule configuration
+- linting with strict rule configuration, including cyclomatic complexity under `4`
+- source duplication checks with `jscpd` under `1%`
 - full typecheck pass
 - unit tests with Vitest
 - Istanbul coverage thresholds
@@ -122,10 +123,13 @@ This package ships with production-grade validation gates:
 Useful scripts:
 
 - `npm run check`
+- `npm run duplication`
 - `npm run test`
 - `npm run test:coverage`
 - `npm run lint`
+- `npm run lint:fix`
 - `npm run typecheck`
+- `npm run publint`
 - `npm run deps:circular`
 - `npm run benchmark`
 

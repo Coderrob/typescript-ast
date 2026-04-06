@@ -15,9 +15,12 @@ npm install
 
 - Build: `npm run build`
 - Lint: `npm run lint`
+- Lint fix: `npm run lint:fix`
+- Duplication check: `npm run duplication`
 - Typecheck: `npm run typecheck`
 - Test: `npm run test`
 - Coverage: `npm run test:coverage`
+- Publint: `npm run publint`
 - Circular dependency check: `npm run deps:circular`
 - Full quality check: `npm run check`
 
@@ -33,6 +36,8 @@ npm install
 - TypeScript only in `src`.
 - Formatting is managed by Prettier.
 - Linting is managed by ESLint.
+- Production source duplication is enforced with `jscpd` under `1%`.
+- Production source cyclomatic complexity is enforced below `4`.
 - Keep helpers small, composable, and policy-agnostic.
 
 ## Code Organization

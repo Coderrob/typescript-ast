@@ -36,7 +36,7 @@ jobs:
         run: npm run benchmark:check
 
       - name: Run Quality Checks
-        run: npm run quality:check
+        run: npm run check
 
       - name: Build Distribution
         run: npm run build
@@ -45,7 +45,7 @@ jobs:
         run: npm run deps:circular
 
       - name: Run Publint
-        run: npm run quality:publint
+        run: npm run publint
 
       - name: Verify Package Contents
         run: npm run release:pack:dry-run
