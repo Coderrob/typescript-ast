@@ -4,7 +4,7 @@ Thanks for contributing to `@coderrob/typescript-ast`.
 
 ## Development Setup
 
-1. Use Node.js 18+.
+1. Use Node.js 20.19+ for repository development and verification.
 2. Install dependencies:
 
 ```bash
@@ -15,17 +15,29 @@ npm install
 
 - Build: `npm run build`
 - Lint: `npm run lint`
+- Lint fix: `npm run lint:fix`
+- Duplication check: `npm run duplication`
 - Typecheck: `npm run typecheck`
 - Test: `npm run test`
 - Coverage: `npm run test:coverage`
+- Publint: `npm run publint`
 - Circular dependency check: `npm run deps:circular`
 - Full quality check: `npm run check`
+
+## Pre-Commit Hooks
+
+- Pre-commit is managed by Husky and runs `lint-staged`.
+- Staged `src/**/*.{ts,tsx}` files are auto-fixed with ESLint (`--fix`) and then formatted with Prettier.
+- Staged `*.{js,cjs,mjs,json,md,yml,yaml}` files are formatted with Prettier.
+- If hook tasks modify files, re-stage them before committing.
 
 ## Code Style
 
 - TypeScript only in `src`.
 - Formatting is managed by Prettier.
 - Linting is managed by ESLint.
+- Production source duplication is enforced with `jscpd` under `1%`.
+- Production source cyclomatic complexity is enforced below `4`.
 - Keep helpers small, composable, and policy-agnostic.
 
 ## Code Organization
@@ -46,6 +58,7 @@ npm install
 - Add tests under `src/__tests__`.
 - Prefer explicit `describe` and `it` organization.
 - Include edge-case and nullish-path tests for new helpers.
+- Coverage thresholds are enforced per file; avoid relying only on global coverage averages.
 
 ## Pull Requests
 

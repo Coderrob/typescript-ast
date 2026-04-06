@@ -143,5 +143,5 @@ function shouldStopTraversal(
   stopPredicate: ((node: Readonly<TSESTree.Node>) => boolean) | undefined,
   node: Readonly<TSESTree.Node>,
 ): boolean {
-  return stopPredicate !== undefined && stopPredicate(node);
+  return stopPredicate?.(node) ?? false;
 }

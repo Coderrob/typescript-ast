@@ -1,79 +1,125 @@
 {
-  "name": "@coderrob/typescript-ast",
-  "version": "0.1.0",
-  "description": "Reusable, policy-agnostic AST interpretation helpers for TypeScript analysis",
-  "homepage": "https://github.com/Coderrob/typescript-ast#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Coderrob/typescript-ast.git"
+  "author": {
+    "name": "Robert Lindley"
   },
   "bugs": {
     "url": "https://github.com/Coderrob/typescript-ast/issues"
   },
-  "type": "commonjs",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "sideEffects": false,
+  "dependencies": {
+    "@coderrob/typescript-type-guards": "^1.0.1"
+  },
+  "description": "Reusable, policy-agnostic AST interpretation helpers for TypeScript analysis",
+  "devDependencies": {
+    "@coderrob/eslint-plugin-zero-tolerance": "^1.2.3",
+    "@emnapi/core": "^1.9.2",
+    "@emnapi/runtime": "^1.9.2",
+    "@emnapi/wasi-threads": "^1.2.1",
+    "@types/node": "^25.5.2",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@typescript-eslint/types": "^8.0.0",
+    "@typescript-eslint/typescript-estree": "^8.0.0",
+    "@typescript-eslint/visitor-keys": "^8.0.0",
+    "@vitest/coverage-istanbul": "^4.1.2",
+    "esbuild": "^0.27.7",
+    "eslint": "^10.2.0",
+    "husky": "^9.1.7",
+    "jscpd": "^4.0.8",
+    "lint-staged": "^16.4.0",
+    "madge": "^8.0.0",
+    "prettier": "^3.8.1",
+    "publint": "^0.3.18",
+    "rimraf": "^6.1.3",
+    "tinybench": "^6.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.2"
+  },
   "engines": {
     "node": ">=18"
   },
-  "publishConfig": {
-    "access": "public"
-  },
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.js"
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      },
+      "default": "./dist/index.cjs"
     }
   },
   "files": [
-    "dist"
+    "dist/**/*.cjs",
+    "dist/**/*.mjs",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.cts",
+    "dist/**/*.d.mts",
+    "README.md",
+    "LICENSE"
   ],
-  "scripts": {
-    "build": "tsc",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage",
-    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true});require('node:fs').rmSync('coverage',{recursive:true,force:true})\"",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "lint": "eslint src --ext .ts",
-    "deps:graph": "madge --extensions ts src/index.ts",
-    "deps:circular": "madge --circular --extensions ts src/index.ts",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit",
-    "publint": "publint",
-    "benchmark": "npm run build && node benchmarks/index.js",
-    "pack:dry-run": "npm pack --dry-run",
-    "prepublishOnly": "npm run clean && npm run build && npm run check && npm run deps:circular && npm run publint"
-  },
+  "homepage": "https://github.com/Coderrob/typescript-ast#readme",
   "keywords": [
     "typescript",
     "ast",
     "eslint",
     "analysis"
   ],
-  "license": "MIT",
-  "devDependencies": {
-    "@coderrob/eslint-plugin-zero-tolerance": "^1.2.3",
-    "@typescript-eslint/eslint-plugin": "^8.0.0",
-    "@typescript-eslint/parser": "^8.0.0",
-    "@typescript-eslint/types": "^8.0.0",
-    "@typescript-eslint/typescript-estree": "^8.0.0",
-    "@vitest/coverage-istanbul": "^3.2.4",
-    "eslint": "^9.0.0",
-    "madge": "^8.0.0",
-    "prettier": "^3.8.1",
-    "publint": "^0.3.18",
-    "tinybench": "^6.0.0",
-    "typescript": "^5.0.0",
-    "vitest": "^3.0.0"
+  "license": "Apache-2.0",
+  "lint-staged": {
+    "**/*.{js,cjs,mjs,json,md,yml,yaml}": [
+      "prettier --write"
+    ],
+    "src/**/*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   },
+  "main": "dist/index.cjs",
+  "name": "@coderrob/typescript-ast",
   "peerDependencies": {
     "@typescript-eslint/types": "^8.0.0"
   },
-  "dependencies": {
-    "@coderrob/typescript-type-guards": "^1.0.1"
-  }
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Coderrob/typescript-ast.git"
+  },
+  "scripts": {
+    "benchmark": "npm run benchmark:run",
+    "benchmark:check": "node benchmarks/check-coverage.js",
+    "benchmark:run": "npm run benchmark:check && npm run build && node benchmarks/index.js",
+    "build": "npm run clean && npm run build:types && npm run build:types:dual && npm run build:js:esm && npm run build:js:cjs",
+    "build:js:cjs": "esbuild src/index.ts --bundle --platform=node --format=cjs --packages=external --minify --sourcemap --outfile=dist/index.cjs",
+    "build:js:esm": "esbuild src/index.ts --bundle --platform=node --format=esm --packages=external --minify --sourcemap --outfile=dist/index.mjs",
+    "build:types": "tsc -p tsconfig.build.json",
+    "build:types:dual": "node -e \"const fs=require('node:fs');fs.copyFileSync('dist/index.d.ts','dist/index.d.mts');fs.copyFileSync('dist/index.d.ts','dist/index.d.cts');\"",
+    "check": "npm run format:check && npm run lint && npm run duplication && npm run typecheck && npm run test:coverage",
+    "clean": "rimraf dist coverage",
+    "deps:circular": "madge --circular --extensions ts src/index.ts",
+    "deps:graph": "madge --extensions ts src/index.ts",
+    "duplication": "jscpd src/ast src/guards src/internal src/index.ts src/import-paths.ts --min-lines 5 --min-tokens 50 --threshold 1 --reporters console",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "pack:dry-run": "npm run release:pack:dry-run",
+    "prepare": "husky",
+    "publish:package": "npm publish",
+    "prepublishOnly": "npm run release:prepublish",
+    "publint": "publint",
+    "release:pack:dry-run": "npm pack --dry-run",
+    "release:prepublish": "npm run clean && npm run build && npm run check && npm run deps:circular && npm run publint",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "sideEffects": false,
+  "type": "commonjs",
+  "types": "dist/index.d.ts",
+  "version": "0.1.0"
 }

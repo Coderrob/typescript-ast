@@ -6,6 +6,7 @@ The project uses:
 
 - TypeScript for builds and declarations
 - ESLint for code-quality rules
+- jscpd for production-source duplication checks
 - Prettier for formatting
 - Vitest for tests
 - Istanbul coverage through `vitest --coverage`
@@ -16,6 +17,7 @@ The project uses:
 ```bash
 npm run build
 npm run lint
+npm run duplication
 npm run typecheck
 npm run test
 npm run test:coverage
@@ -37,6 +39,8 @@ npm run publint
 - public package access
 - distributable output published from `dist`
 - Node.js engine floor: 18+
+- cyclomatic complexity enforced below `4` on production TypeScript
+- production-source duplication enforced below `1%`
 
 ## Documentation Sources
 

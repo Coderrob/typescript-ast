@@ -31,6 +31,20 @@ function parseFn(code: string): TSESTree.FunctionDeclaration {
   return asFunctionDeclaration(parse(code, { jsx: false }).body[0]);
 }
 
+function testAdditionalTypeAnnotationBranches(): void {
+  it("should return null for defaulted object destructuring without a type annotation", () => {
+    expect(getObjectDestructuredParameterTypeNode(parseFn("function f({ x } = defaults) {}").params[0])).toBeNull();
+  });
+
+  it("should return null when assignment-pattern left typeAnnotation is not TSTypeAnnotation", () => {
+    const param = asAssignmentPattern(parseFn("function f(x = value) {}").params[0]);
+    const left = asIdentifier(param.left);
+
+    Reflect.set(left, "typeAnnotation", { type: "Identifier" });
+    expect(getParameterTypeAnnotation(param)).toBeNull();
+  });
+}
+
 function testGetFirstNonThisParameter(): void {
   it("should return first non-this parameter", () => {
     const param = getFirstNonThisParameter(parseFn("function f(this: Foo, x: string) {}").params);
@@ -141,10 +155,18 @@ function testNamedParameterHelpers(): void {
     expect(getNamedParameterIdentifier(assignment)?.name).toBe("x");
     expect(getNamedParameterName(assignment)).toBe("x");
   });
+  it("should return null for assignment-pattern identifiers when the left side is non-identifier", () => {
+    const assignment = asAssignmentPattern(parseFn("function f([x] = values) {}").params[0]);
+    expect(getAssignmentPatternIdentifier(assignment)).toBeNull();
+  });
   it("should resolve rest-element identifiers", () => {
     const rest = asRestElement(parseFn("function f(...items) {}").params[0]);
     expect(getRestElementIdentifier(rest)?.name).toBe("items");
     expect(getNamedParameterIdentifier(rest)?.name).toBe("items");
+  });
+  it("should return null for rest-element identifiers when argument is a pattern", () => {
+    const rest = asRestElement(parseFn("function f(...[item]) {}").params[0]);
+    expect(getRestElementIdentifier(rest)).toBeNull();
   });
   it("should return null for destructured parameters", () => {
     expect(getNamedParameterIdentifier(parseFn("function f({ x }) {}").params[0])).toBeNull();
@@ -159,5 +181,6 @@ describe("parameters", () => {
   describe("getParameterTypeNode", testGetParameterTypeNode);
   describe("getTsParameterPropertyIdentifier", testGetTsParameterPropertyIdentifier);
   describe("named parameter helpers", testNamedParameterHelpers);
+  describe("additional type-annotation branches", testAdditionalTypeAnnotationBranches);
   describe("isThisParameter", testIsThisParameter);
 });
