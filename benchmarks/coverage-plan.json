@@ -1,0 +1,122 @@
+{
+  "ast/calls": {
+    "benchmarked": [
+      "getCalleeNamePath",
+      "getStringLiteralCallArgument",
+      "hasCallCalleeNamePath",
+      "hasMemberCallee",
+      "isNamedCall"
+    ],
+    "skipped": {
+      "getCallArgument": "Thin index accessor; negligible standalone perf value.",
+      "getFirstCallArgument": "Thin wrapper over getCallArgument.",
+      "getMatchingCallMemberMethodName": "Set membership wrapper around helper path.",
+      "hasIdentifierCallee": "Simple identifier/name equality check.",
+      "isNamedMemberCall": "Small predicate composition over member checks."
+    }
+  },
+  "ast/helpers": {
+    "benchmarked": ["getCallMemberMethodName", "getMemberPropertyName", "getVisitorChildNodes", "resolveFunctionName"],
+    "skipped": {
+      "getFunctionDeclarationName": "Simple discriminator + property read.",
+      "getFunctionMethodName": "Parent-read wrapper with method check.",
+      "getFunctionVariableName": "Parent-read wrapper with declarator check.",
+      "getIdentifierName": "Direct node kind/name read.",
+      "getLiteralStringValue": "Single literal/type guard check.",
+      "getMappedMemberPropertyName": "Map lookup wrapper over property resolver.",
+      "getOptionMaxValue": "Plain-object guard and property read."
+    }
+  },
+  "ast/jsdoc": {
+    "benchmarked": ["getJsdocComment", "isJsdocBlockComment"],
+    "skipped": {
+      "getLineIndentation": "Low-cost string slice helper.",
+      "getParentOwnedTargetNode": "Ownership resolver with parent lookup.",
+      "getTargetNode": "Small fallback composition.",
+      "getVariableOwnedTargetNode": "Ownership resolver not perf-sensitive.",
+      "isParentOwnedTargetType": "Set membership check.",
+      "isStandaloneLineTarget": "Small location/prefix check."
+    }
+  },
+  "ast/navigation": {
+    "benchmarked": ["findAncestor", "getParentBlockStatement", "isInsideBoundary"],
+    "skipped": {
+      "findEnclosingFunction": "Specialized ancestor variant with similar profile.",
+      "getNextStatementInBlock": "Array index lookup helper.",
+      "getNodeParent": "Single runtime parent read."
+    }
+  },
+  "ast/parameters": {
+    "benchmarked": [
+      "getNamedParameterIdentifier",
+      "getObjectDestructuredParameterTypeNode",
+      "getParameterTypeAnnotation"
+    ],
+    "skipped": {
+      "getAssignmentPatternIdentifier": "Single branch helper.",
+      "getFirstNonThisParameter": "Short linear scan helper.",
+      "getNamedParameterName": "Name projection wrapper.",
+      "getParameterTypeNode": "Annotation projection wrapper.",
+      "getRestElementIdentifier": "Single guard helper.",
+      "getTsParameterPropertyIdentifier": "Small conditional helper.",
+      "isThisParameter": "Simple identifier-name predicate."
+    }
+  },
+  "ast/search": {
+    "benchmarked": ["findDescendant", "hasMatchingDescendant", "hasMatchingDescendantUntil"],
+    "skipped": {
+      "hasSomeDescendant": "Alias-level wrapper over findDescendant."
+    }
+  },
+  "ast/statements": {
+    "benchmarked": ["getBooleanLiteralReturnValue", "getReturnStatement"],
+    "skipped": {
+      "getBooleanLiteralValue": "Literal boolean extraction helper.",
+      "getFollowingStatementInBlock": "Simple parent/block lookup wrapper.",
+      "getSingleReturnStatement": "Single-statement shape check helper."
+    }
+  },
+  "ast/types": {
+    "benchmarked": ["unwrapTsExpression", "isNamedTypeReference", "hasTypeArguments"],
+    "skipped": {
+      "getFirstTypeArgument": "Simple type-argument accessor.",
+      "getTypeReferenceName": "Identifier projection helper.",
+      "hasAllReadonlyPropertyMembers": "Small array predicate helper.",
+      "hasNamedTypeReferenceWithTypeArguments": "Composition helper of existing predicates."
+    }
+  },
+  "guards/nodes": {
+    "benchmarked": ["isCallExpression", "isIdentifier", "isTestFile", "isUncomputedMemberExpression"],
+    "skipped": {
+      "isBinaryExpression": "Trivial discriminant predicate.",
+      "isBlockStatement": "Trivial discriminant predicate.",
+      "isFunctionDeclaration": "Trivial discriminant predicate.",
+      "isFunctionLike": "Set membership predicate.",
+      "isLiteral": "Trivial discriminant predicate.",
+      "isMemberExpression": "Trivial discriminant predicate.",
+      "isMethodDefinition": "Trivial discriminant predicate.",
+      "isNamedIdentifier": "Simple composition of identifier checks.",
+      "isNodeLike": "Runtime shape predicate helper.",
+      "isReturnStatement": "Trivial discriminant predicate.",
+      "isStringLiteral": "Literal subtype predicate.",
+      "isSwitchCase": "Trivial discriminant predicate.",
+      "isThisExpression": "Trivial discriminant predicate.",
+      "isTSAsExpression": "Trivial discriminant predicate.",
+      "isTSEnumMember": "Trivial discriminant predicate.",
+      "isTSNonNullExpression": "Trivial discriminant predicate.",
+      "isTSParameterProperty": "Trivial discriminant predicate.",
+      "isTSPropertySignature": "Trivial discriminant predicate.",
+      "isTSSatisfiesExpression": "Trivial discriminant predicate.",
+      "isTSTypeAnnotation": "Trivial discriminant predicate.",
+      "isTSTypeLiteral": "Trivial discriminant predicate.",
+      "isTSTypeReference": "Trivial discriminant predicate.",
+      "isUnaryExpression": "Trivial discriminant predicate.",
+      "isVariableDeclaration": "Trivial discriminant predicate.",
+      "isVariableDeclarator": "Trivial discriminant predicate."
+    }
+  },
+  "import-paths": {
+    "benchmarked": ["getFilename", "isBarrelFile", "isParentDirectoryImportPath"],
+    "skipped": {}
+  }
+}

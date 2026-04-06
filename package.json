@@ -1,70 +1,14 @@
 {
-  "name": "@coderrob/typescript-ast",
-  "version": "0.1.0",
-  "description": "Reusable, policy-agnostic AST interpretation helpers for TypeScript analysis",
-  "homepage": "https://github.com/Coderrob/typescript-ast#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Coderrob/typescript-ast.git"
+  "author": {
+    "name": "Robert Lindley"
   },
   "bugs": {
     "url": "https://github.com/Coderrob/typescript-ast/issues"
   },
-  "type": "commonjs",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "sideEffects": false,
-  "engines": {
-    "node": ">=18"
+  "dependencies": {
+    "@coderrob/typescript-type-guards": "^1.0.1"
   },
-  "publishConfig": {
-    "access": "public"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.js"
-    }
-  },
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "build": "tsc",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage",
-    "clean": "rimraf dist coverage",
-    "prepare": "husky",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "lint": "eslint src --ext .ts",
-    "deps:graph": "madge --extensions ts src/index.ts",
-    "deps:circular": "madge --circular --extensions ts src/index.ts",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit",
-    "publint": "publint",
-    "benchmark": "npm run build && node benchmarks/index.js",
-    "pack:dry-run": "npm pack --dry-run",
-    "prepublishOnly": "npm run clean && npm run build && npm run check && npm run deps:circular && npm run publint"
-  },
-  "lint-staged": {
-    "src/**/*.{ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "**/*.{js,cjs,mjs,json,md,yml,yaml}": [
-      "prettier --write"
-    ]
-  },
-  "keywords": [
-    "typescript",
-    "ast",
-    "eslint",
-    "analysis"
-  ],
-  "license": "MIT",
+  "description": "Reusable, policy-agnostic AST interpretation helpers for TypeScript analysis",
   "devDependencies": {
     "@coderrob/eslint-plugin-zero-tolerance": "^1.2.3",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
@@ -72,6 +16,7 @@
     "@typescript-eslint/types": "^8.0.0",
     "@typescript-eslint/typescript-estree": "^8.0.0",
     "@vitest/coverage-istanbul": "^3.2.4",
+    "esbuild": "^0.27.0",
     "eslint": "^9.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^15.5.2",
@@ -83,10 +28,90 @@
     "typescript": "^5.0.0",
     "vitest": "^3.0.0"
   },
+  "engines": {
+    "node": ">=18"
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      },
+      "default": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "homepage": "https://github.com/Coderrob/typescript-ast#readme",
+  "keywords": [
+    "typescript",
+    "ast",
+    "eslint",
+    "analysis"
+  ],
+  "license": "Apache-2.0",
+  "lint-staged": {
+    "**/*.{js,cjs,mjs,json,md,yml,yaml}": [
+      "prettier --write"
+    ],
+    "src/**/*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  },
+  "main": "dist/index.cjs",
+  "name": "@coderrob/typescript-ast",
   "peerDependencies": {
     "@typescript-eslint/types": "^8.0.0"
   },
-  "dependencies": {
-    "@coderrob/typescript-type-guards": "^1.0.1"
-  }
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Coderrob/typescript-ast.git"
+  },
+  "scripts": {
+    "benchmark": "npm run benchmark:run",
+    "benchmark:check": "node benchmarks/check-coverage.js",
+    "benchmark:run": "npm run benchmark:check && npm run build && node benchmarks/index.js",
+    "build": "npm run clean && npm run build:types && npm run build:types:dual && npm run build:js:esm && npm run build:js:cjs",
+    "build:js:cjs": "esbuild src/index.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/index.cjs",
+    "build:js:esm": "esbuild src/index.ts --bundle --platform=node --format=esm --packages=external --sourcemap --outfile=dist/index.mjs",
+    "build:types": "tsc -p tsconfig.build.json",
+    "build:types:dual": "node -e \"const fs=require('node:fs');fs.copyFileSync('dist/index.d.ts','dist/index.d.mts');fs.copyFileSync('dist/index.d.ts','dist/index.d.cts');\"",
+    "check": "npm run quality:check",
+    "clean": "rimraf dist coverage",
+    "deps:circular": "madge --circular --extensions ts src/index.ts",
+    "deps:graph": "madge --extensions ts src/index.ts",
+    "format": "npm run quality:format",
+    "format:check": "npm run quality:format:check",
+    "lint": "npm run quality:lint",
+    "pack:dry-run": "npm run release:pack:dry-run",
+    "prepare": "husky",
+    "prepublishOnly": "npm run release:prepublish",
+    "publint": "npm run quality:publint",
+    "quality:check": "npm run quality:format:check && npm run quality:lint && npm run quality:typecheck && npm run test:coverage",
+    "quality:format": "prettier --write .",
+    "quality:format:check": "prettier --check .",
+    "quality:lint": "eslint src --ext .ts",
+    "quality:lint:fix": "eslint src --ext .ts --fix",
+    "quality:publint": "publint",
+    "quality:typecheck": "tsc --noEmit",
+    "release:pack:dry-run": "npm pack --dry-run",
+    "release:prepublish": "npm run clean && npm run build && npm run quality:check && npm run deps:circular && npm run quality:publint",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
+    "typecheck": "npm run quality:typecheck"
+  },
+  "sideEffects": false,
+  "type": "commonjs",
+  "types": "dist/index.d.ts",
+  "version": "0.1.0"
 }

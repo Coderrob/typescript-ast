@@ -53,6 +53,7 @@ npm install
 - Add tests under `src/__tests__`.
 - Prefer explicit `describe` and `it` organization.
 - Include edge-case and nullish-path tests for new helpers.
+- Coverage thresholds are enforced per file; avoid relying only on global coverage averages.
 
 ## Pull Requests
 
