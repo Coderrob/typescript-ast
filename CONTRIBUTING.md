@@ -22,7 +22,8 @@ npm install
 - Coverage: `npm run test:coverage`
 - Publint: `npm run publint`
 - Circular dependency check: `npm run deps:circular`
-- Full quality check: `npm run check`
+- Full quality check: `npm run quality`
+- CI-equivalent verification: `npm run ci`
 
 ## Pre-Commit Hooks
 
@@ -65,7 +66,7 @@ npm install
 Before opening a PR, run:
 
 ```bash
-npm run check
+npm run quality
 ```
 
 For release-critical changes, also run:

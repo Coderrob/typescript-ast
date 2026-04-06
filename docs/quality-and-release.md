@@ -21,7 +21,8 @@ npm run duplication
 npm run typecheck
 npm run test
 npm run test:coverage
-npm run check
+npm run quality
+npm run ci
 ```
 
 ## Release-Oriented Commands

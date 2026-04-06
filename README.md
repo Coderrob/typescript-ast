@@ -147,7 +147,7 @@ This package ships with production-grade validation gates:
 
 Useful scripts:
 
-- `npm run check`
+- `npm run quality`
 - `npm run duplication`
 - `npm run test`
 - `npm run test:coverage`
@@ -156,7 +156,8 @@ Useful scripts:
 - `npm run typecheck`
 - `npm run publint`
 - `npm run deps:circular`
-- `npm run benchmark`
+- `npm run ci`
+- `npm run bench`
 
 Project docs:
 
@@ -214,7 +215,7 @@ Current benchmark suite (`benchmarks/index.js`):
 Run benchmarks locally:
 
 ```bash
-npm run benchmark
+npm run bench
 ```
 
 The benchmark output includes:

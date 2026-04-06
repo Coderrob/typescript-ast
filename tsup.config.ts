@@ -18,6 +18,7 @@ export default defineConfig({
     };
   },
   platform: "node",
+  skipNodeModulesBundle: true,
   splitting: false,
   sourcemap: false,
   target: "es2020",
