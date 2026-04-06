@@ -4,9 +4,10 @@
 /**
  * Validate the benchmark coverage plan against the current public API surface.
  *
- * The script ensures every exported function is either benchmarked by
- * `benchmarks/index.js` or explicitly listed as skipped with a reason in
- * `coverage-plan.json`.
+ * The script ensures every exported function or exported function alias is
+ * either benchmarked by `benchmarks/index.js` or explicitly listed as skipped
+ * with a reason in `coverage-plan.json`. Compatibility aliases may inherit the
+ * decision of the public function they reference.
  */
 const fs = require("node:fs");
 const path = require("node:path");
@@ -17,10 +18,12 @@ const planPath = path.join(__dirname, "coverage-plan.json");
 const benchmarkRunnerPath = path.join(__dirname, "index.js");
 const EXPORT_FROM_PATTERN = /export \* from "\.\/(.+)";/g;
 const EXPORTED_FUNCTION_PATTERN = /export function\s+(\w+)/g;
+const EXPORTED_CONST_ALIAS_PATTERN = /export const\s+(\w+)\s*=\s*(\w+)\s*;/g;
 
 /**
  * @typedef {{benchmarked: string[], skipped: Record<string, string>}} ModulePlan
  * @typedef {Record<string, ModulePlan>} CoveragePlan
+ * @typedef {{exportedNames: string[], aliasTargets: Record<string, string>}} ModuleInventory
  * @typedef {{module: string, total: number, benchmarked: number, skipped: number}} ModuleSummary
  */
 
@@ -43,23 +46,34 @@ function getExportedModules() {
 }
 
 /**
- * Collect exported function names from one module file.
+ * Collect exported function names and exported function-alias bindings from one
+ * module file.
  * @param {string} modulePath - Module path from src/index.ts (without extension).
- * @returns {string[]} Exported function names (deduplicated).
+ * @returns {ModuleInventory} Exported names and alias relationships.
  */
 function getExportedFunctionsForModule(modulePath) {
   const sourcePath = path.join(projectRoot, "src", `${modulePath}.ts`);
   const source = readText(sourcePath);
-  const names = [...source.matchAll(EXPORTED_FUNCTION_PATTERN)].map((match) => match[1]);
-  return [...new Set(names)];
+  const functionNames = [...source.matchAll(EXPORTED_FUNCTION_PATTERN)].map((match) => match[1]);
+  /** @type {Record<string, string>} */
+  const aliasTargets = {};
+
+  for (const [, exportName, targetName] of source.matchAll(EXPORTED_CONST_ALIAS_PATTERN)) {
+    aliasTargets[exportName] = targetName;
+  }
+
+  return {
+    exportedNames: [...new Set([...functionNames, ...Object.keys(aliasTargets)])],
+    aliasTargets,
+  };
 }
 
 /**
  * Build module -> exported function inventory from public index exports.
- * @returns {Record<string, string[]>} Inventory keyed by module.
+ * @returns {Record<string, ModuleInventory>} Inventory keyed by module.
  */
 function getExportInventory() {
-  /** @type {Record<string, string[]>} */
+  /** @type {Record<string, ModuleInventory>} */
   const inventory = {};
   for (const modulePath of getExportedModules()) {
     inventory[modulePath] = getExportedFunctionsForModule(modulePath);
@@ -68,18 +82,74 @@ function getExportInventory() {
 }
 
 /**
+ * Resolve the canonical coverage-decision name for an exported function alias.
+ * @param {string} exportName - Exported function or alias name.
+ * @param {Record<string, string>} aliasTargets - Alias -> target lookup for the module.
+ * @returns {string | null} Canonical function name, or null when the alias graph is cyclic.
+ */
+function getCoverageDecisionName(exportName, aliasTargets) {
+  const seen = new Set();
+  let currentName = exportName;
+
+  while (currentName in aliasTargets) {
+    if (seen.has(currentName)) {
+      return null;
+    }
+
+    seen.add(currentName);
+    currentName = aliasTargets[currentName];
+  }
+
+  return currentName;
+}
+
+/**
+ * Check whether a function or alias is marked as benchmarked or skipped,
+ * allowing aliases to inherit the decision of the function they reference.
+ * @param {string} exportName - Exported function or alias name.
+ * @param {Set<string>} names - Decision names from the benchmark plan.
+ * @param {Record<string, string>} aliasTargets - Alias -> target lookup for the module.
+ * @returns {boolean} True when the export has a matching decision.
+ */
+function hasCoverageDecision(exportName, names, aliasTargets) {
+  const decisionName = getCoverageDecisionName(exportName, aliasTargets);
+  return names.has(exportName) || (decisionName !== null && names.has(decisionName));
+}
+
+/**
+ * Record errors for aliases whose targets do not resolve to an exported
+ * function within the same module.
+ * @param {ModuleInventory} moduleInventory - Exported names and alias relationships for the module.
+ * @param {string} modulePath - Module currently being validated.
+ * @param {string[]} errors - Error collector to append validation failures to.
+ */
+function addInvalidAliasErrors(moduleInventory, modulePath, errors) {
+  for (const [aliasName, targetName] of Object.entries(moduleInventory.aliasTargets)) {
+    const resolvedTargetName = getCoverageDecisionName(aliasName, moduleInventory.aliasTargets);
+    if (resolvedTargetName === null) {
+      errors.push(`Cyclic exported alias in module '${modulePath}': ${aliasName}.`);
+      continue;
+    }
+
+    if (!moduleInventory.exportedNames.includes(resolvedTargetName) || resolvedTargetName === aliasName) {
+      errors.push(`Invalid exported alias in module '${modulePath}': ${aliasName} -> ${targetName}.`);
+    }
+  }
+}
+
+/**
  * Record errors for exported functions that are missing a benchmark decision
  * or appear in both the benchmarked and skipped sets.
- * @param {string[]} exportedFunctions
+ * @param {ModuleInventory} moduleInventory - Exported names and alias relationships for the module.
  * @param {Set<string>} benchmarked - Functions marked for benchmarking.
  * @param {Set<string>} skipped - Functions explicitly skipped in the plan.
  * @param {string} modulePath - Module currently being validated.
  * @param {string[]} errors - Error collector to append validation failures to.
  */
-function addCoverageDecisionErrors(exportedFunctions, benchmarked, skipped, modulePath, errors) {
-  for (const functionName of exportedFunctions) {
-    const isBenchmarked = benchmarked.has(functionName);
-    const isSkipped = skipped.has(functionName);
+function addCoverageDecisionErrors(moduleInventory, benchmarked, skipped, modulePath, errors) {
+  for (const functionName of moduleInventory.exportedNames) {
+    const isBenchmarked = hasCoverageDecision(functionName, benchmarked, moduleInventory.aliasTargets);
+    const isSkipped = hasCoverageDecision(functionName, skipped, moduleInventory.aliasTargets);
 
     if (!isBenchmarked && !isSkipped) {
       errors.push(`Missing coverage decision for ${modulePath}:${functionName}.`);
@@ -94,14 +164,14 @@ function addCoverageDecisionErrors(exportedFunctions, benchmarked, skipped, modu
 /**
  * Record errors for benchmark-plan entries that reference unknown functions.
  * @param {Set<string>} names
- * @param {string[]} exportedFunctions - Publicly exported function names for the module.
+ * @param {ModuleInventory} moduleInventory - Exported names and alias relationships for the module.
  * @param {string} modulePath - Module currently being validated.
  * @param {string[]} errors - Error collector to append validation failures to.
  * @param {"benchmarked" | "skipped"} label - Plan section being validated.
  */
-function addUnknownFunctionErrors(names, exportedFunctions, modulePath, errors, label) {
+function addUnknownFunctionErrors(names, moduleInventory, modulePath, errors, label) {
   for (const functionName of names) {
-    if (!exportedFunctions.includes(functionName)) {
+    if (!moduleInventory.exportedNames.includes(functionName)) {
       errors.push(`Unknown ${label} function in plan: ${modulePath}:${functionName}.`);
     }
   }
@@ -126,45 +196,53 @@ function addMissingBenchmarkTaskErrors(benchmarked, modulePath, benchmarkLabels,
 /**
  * Create one summary row for console-table reporting.
  * @param {string} modulePath
- * @param {string[]} exportedFunctions - Public function names for the module.
+ * @param {ModuleInventory} moduleInventory - Exported names and alias relationships for the module.
  * @param {Set<string>} benchmarked - Functions marked for benchmarking.
  * @param {Set<string>} skipped - Functions explicitly skipped in the plan.
  * @returns {ModuleSummary} Summary counts for the module.
  */
-function createModuleSummary(modulePath, exportedFunctions, benchmarked, skipped) {
+function createModuleSummary(modulePath, moduleInventory, benchmarked, skipped) {
+  const benchmarkedCount = moduleInventory.exportedNames.filter((name) =>
+    hasCoverageDecision(name, benchmarked, moduleInventory.aliasTargets),
+  ).length;
+  const skippedCount = moduleInventory.exportedNames.filter((name) =>
+    hasCoverageDecision(name, skipped, moduleInventory.aliasTargets),
+  ).length;
+
   return {
     module: modulePath,
-    total: exportedFunctions.length,
-    benchmarked: [...benchmarked].filter((name) => exportedFunctions.includes(name)).length,
-    skipped: [...skipped].filter((name) => exportedFunctions.includes(name)).length,
+    total: moduleInventory.exportedNames.length,
+    benchmarked: benchmarkedCount,
+    skipped: skippedCount,
   };
 }
 
 /**
  * Validate one module entry from the benchmark coverage plan.
  * @param {string} modulePath
- * @param {string[]} exportedFunctions - Public function names for the module.
+ * @param {ModuleInventory} moduleInventory - Exported names and alias relationships for the module.
  * @param {ModulePlan} modulePlan - Plan entry for the module.
  * @param {string[]} benchmarkLabels - Benchmark task labels parsed from the runner.
  * @param {string[]} errors - Error collector to append validation failures to.
  * @param {ModuleSummary[]} summary - Summary collector for console reporting.
  */
-function validateModulePlan(modulePath, exportedFunctions, modulePlan, benchmarkLabels, errors, summary) {
+function validateModulePlan(modulePath, moduleInventory, modulePlan, benchmarkLabels, errors, summary) {
   const benchmarked = new Set(modulePlan.benchmarked);
   const skipped = new Set(Object.keys(modulePlan.skipped));
 
-  addCoverageDecisionErrors(exportedFunctions, benchmarked, skipped, modulePath, errors);
-  addUnknownFunctionErrors(benchmarked, exportedFunctions, modulePath, errors, "benchmarked");
+  addInvalidAliasErrors(moduleInventory, modulePath, errors);
+  addCoverageDecisionErrors(moduleInventory, benchmarked, skipped, modulePath, errors);
+  addUnknownFunctionErrors(benchmarked, moduleInventory, modulePath, errors, "benchmarked");
   addMissingBenchmarkTaskErrors(benchmarked, modulePath, benchmarkLabels, errors);
-  addUnknownFunctionErrors(skipped, exportedFunctions, modulePath, errors, "skipped");
-  summary.push(createModuleSummary(modulePath, exportedFunctions, benchmarked, skipped));
+  addUnknownFunctionErrors(skipped, moduleInventory, modulePath, errors, "skipped");
+  summary.push(createModuleSummary(modulePath, moduleInventory, benchmarked, skipped));
 }
 
 /**
  * Record errors for modules that appear in the coverage plan but are not
  * re-exported from the public index.
  * @param {CoveragePlan} plan
- * @param {Record<string, string[]>} inventory - Public export inventory keyed by module path.
+ * @param {Record<string, ModuleInventory>} inventory - Public export inventory keyed by module path.
  * @param {string[]} errors - Error collector to append validation failures to.
  */
 function addUnknownModuleErrors(plan, inventory, errors) {
@@ -209,14 +287,14 @@ function validatePlan() {
   /** @type {ModuleSummary[]} */
   const summary = [];
 
-  for (const [modulePath, exportedFunctions] of Object.entries(inventory)) {
+  for (const [modulePath, moduleInventory] of Object.entries(inventory)) {
     const modulePlan = plan[modulePath];
     if (!modulePlan) {
       errors.push(`Missing module plan for '${modulePath}'.`);
       continue;
     }
 
-    validateModulePlan(modulePath, exportedFunctions, modulePlan, benchmarkLabels, errors, summary);
+    validateModulePlan(modulePath, moduleInventory, modulePlan, benchmarkLabels, errors, summary);
   }
 
   addUnknownModuleErrors(plan, inventory, errors);
@@ -235,4 +313,6 @@ if (result.errors.length > 0) {
   process.exit(1);
 }
 
-console.log("\nBenchmark coverage plan is valid: every exported function is benchmarked or explicitly skipped.");
+console.log(
+  "\nBenchmark coverage plan is valid: every exported function or function alias is benchmarked or explicitly skipped.",
+);

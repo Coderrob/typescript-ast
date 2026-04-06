@@ -146,14 +146,40 @@ Important context:
 
 Current benchmark suite (`benchmarks/index.js`):
 
-| Benchmark Task                            | What It Measures                                                   |
-| ----------------------------------------- | ------------------------------------------------------------------ |
-| `getCalleeNamePath — identifier`          | Fast-path callee extraction for simple identifier calls (`foo()`). |
-| `getCalleeNamePath — member chain`        | Callee extraction for chained member calls (`foo.bar.baz()`).      |
-| `isNamedCall — match`                     | Named call matching on a simple call expression.                   |
-| `hasMatchingDescendant — CallExpression`  | Descendant traversal and predicate match for `CallExpression`.     |
-| `hasMatchingDescendantUntil — Identifier` | Descendant traversal with stop predicate support.                  |
-| `findDescendant — CallExpression`         | Direct descendant lookup performance.                              |
+| Benchmark Task                                   | What It Measures                                                    |
+| ------------------------------------------------ | ------------------------------------------------------------------- |
+| `getCalleeNamePath: member`                      | Callee-path extraction for a chained member call (`foo.bar.baz()`). |
+| `getStringLiteralCallArgument: first`            | Reading the first string-literal argument from a call.              |
+| `hasCallCalleeNamePath: member`                  | Exact path matching for a member call.                              |
+| `hasMemberCallee: member`                        | Member-callee detection on a call expression.                       |
+| `isNamedCall: simple`                            | Named call matching on a simple identifier call.                    |
+| `getCallMemberMethodName: member`                | Member method-name extraction from a call expression.               |
+| `getMemberPropertyName: member`                  | Member-property name resolution for a member expression.            |
+| `getVisitorChildNodes: nested`                   | Direct child-node collection using visitor keys.                    |
+| `resolveFunctionName: declaration`               | Function-name resolution for a declaration-shaped function.         |
+| `getJsdocComment: basic`                         | Retrieving the nearest preceding JSDoc block.                       |
+| `isJsdocBlockComment: basic`                     | JSDoc block-comment detection.                                      |
+| `findAncestor: function`                         | Upward ancestor search to the nearest function boundary.            |
+| `getParentBlockStatement: return`                | Locating the containing block for a return statement.               |
+| `isInsideBoundary: ancestors`                    | Boundary matching over an explicit ancestor chain.                  |
+| `getNamedParameterIdentifier: identifier`        | Parameter-name extraction for an identifier parameter.              |
+| `getObjectDestructuredParameterTypeNode: object` | Type-node extraction from an object-destructured parameter.         |
+| `getParameterTypeAnnotation: identifier`         | Parameter type-annotation lookup for a typed parameter.             |
+| `findDescendant: call`                           | Depth-first descendant search for call expressions.                 |
+| `hasMatchingDescendant: call`                    | Descendant existence checks for call expressions.                   |
+| `hasMatchingDescendantUntil: identifier`         | Descendant search with a stop predicate.                            |
+| `getBooleanLiteralReturnValue: return`           | Boolean-return extraction from a return statement.                  |
+| `getReturnStatement: return`                     | Return-statement resolution from a statement input.                 |
+| `unwrapTsExpression: wrapped`                    | Unwrapping TypeScript wrapper expressions.                          |
+| `isNamedTypeReference: promise`                  | Named type-reference matching.                                      |
+| `hasTypeArguments: promise`                      | Type-argument presence checks on a type reference.                  |
+| `isCallExpression: simple`                       | Call-expression guard cost on a simple call.                        |
+| `isIdentifier: callee`                           | Identifier guard cost on a call callee.                             |
+| `isTestFile: convention`                         | Test-file path convention matching.                                 |
+| `isUncomputedMemberExpression: callee`           | Non-computed member-expression guard cost.                          |
+| `getFilename: path`                              | Filename extraction from a path string.                             |
+| `isBarrelFile: index`                            | Barrel-file detection for index-style paths.                        |
+| `isParentDirectoryImportPath: relative`          | Parent-directory import-path detection.                             |
 
 Run benchmarks locally:
 
