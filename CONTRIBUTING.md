@@ -21,6 +21,13 @@ npm install
 - Circular dependency check: `npm run deps:circular`
 - Full quality check: `npm run check`
 
+## Pre-Commit Hooks
+
+- Pre-commit is managed by Husky and runs `lint-staged`.
+- Staged `src/**/*.{ts,tsx}` files are auto-fixed with ESLint (`--fix`) and then formatted with Prettier.
+- Staged `*.{js,cjs,mjs,json,md,yml,yaml}` files are formatted with Prettier.
+- If hook tasks modify files, re-stage them before committing.
+
 ## Code Style
 
 - TypeScript only in `src`.

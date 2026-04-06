@@ -47,6 +47,8 @@ const hasNestedCalls = hasMatchingDescendant(programNode, visitorKeys, (node) =>
 ## Module Surface
 
 - `ast/calls`: call-shape and callee-name helpers
+- `ast/helpers`: shared AST helper utilities
+- `ast/jsdoc`: JSDoc target/ownership helpers
 - `ast/navigation`: ancestor and boundary navigation helpers
 - `ast/parameters`: parameter and annotation extraction helpers
 - `ast/search`: visitor-key descendant search helpers
@@ -54,6 +56,54 @@ const hasNestedCalls = hasMatchingDescendant(programNode, visitorKeys, (node) =>
 - `ast/types`: type-reference and wrapper-expression helpers
 - `guards/nodes`: ESTree node type guards
 - `import-paths`: import-path utility checks
+
+## Functionality
+
+Common tasks this library supports:
+
+- Resolve callee name paths from calls and member-call chains.
+- Match named calls and named object-member calls.
+- Traverse descendants with optional stop predicates.
+- Locate ancestors and evaluate boundary-aware parent relationships.
+- Extract named parameters and parameter type annotations.
+- Unwrap TypeScript wrapper expressions (`as`, non-null, satisfies).
+- Read boolean return intent from return/block statements.
+- Normalize import-path checks (filename, barrel, parent-directory import).
+
+Practical examples:
+
+### Detect a specific call pattern
+
+```ts
+import { hasCallCalleeNamePath, isNamedMemberCall } from "@coderrob/typescript-ast";
+
+const isConsoleError = hasCallCalleeNamePath(callNode, ["console", "error"]);
+const isFsReadFileSync = isNamedMemberCall(callNode, "fs", "readFileSync");
+```
+
+### Search descendants while controlling traversal
+
+```ts
+import { findDescendant } from "@coderrob/typescript-ast";
+
+const found = findDescendant(
+  program,
+  visitorKeys,
+  (node) => node.type === "CallExpression",
+  (node) => node.type === "FunctionDeclaration",
+);
+```
+
+### Read parameter typing and unwrap TS expressions
+
+```ts
+import { getNamedParameterName, getParameterTypeNode, unwrapTsExpression } from "@coderrob/typescript-ast";
+
+const firstParam = fn.params[0];
+const name = getNamedParameterName(firstParam);
+const typeNode = getParameterTypeNode(firstParam);
+const runtimeExpression = unwrapTsExpression(expression);
+```
 
 ## Quality Gates
 
