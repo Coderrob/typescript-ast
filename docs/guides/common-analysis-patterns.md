@@ -4,7 +4,7 @@
 
 These patterns work toward a neutral AST-navigation style. They focus on traversing structure and resolving stable shapes before any TypeScript-specific interpretation.
 
-## Find A Named Call
+### Find A Named Call
 
 Use `isNamedCall(...)` when you want exact matching against a static callee path.
 
@@ -22,7 +22,7 @@ This only matches statically resolvable identifier and member-expression callees
 - `test.each()()` does not match `isNamedCall(...)` because the call's callee is itself a `CallExpression`
 - `foo().bar()` does not resolve and returns `null` through path helpers
 
-## Read A Callee Path
+### Read A Callee Path
 
 Use `getCalleeNamePath(...)` when you need the resolved string form.
 
@@ -43,7 +43,7 @@ Examples:
 - `test.each()()` resolves to `test.each`
 - `foo().bar()` returns `null`
 
-## Search Descendants Safely
+### Search Descendants Safely
 
 Use `findDescendant(...)` with visitor keys when you need to inspect nested shapes.
 
@@ -60,7 +60,7 @@ You can also stop traversal into unwanted subtrees:
 const match = findDescendant(node, visitorKeys, predicate, (child) => child.type === "FunctionExpression");
 ```
 
-## Walk Up To Structural Boundaries
+### Walk Up To Structural Boundaries
 
 Use `findAncestor(...)`, `findEnclosingFunction(...)`, and `isInsideBoundary(...)` when rules depend on context.
 
@@ -70,7 +70,7 @@ Examples:
 - whether a node is inside a loop or callback
 - whether a match boundary appears before a stop boundary
 
-## Extract Simple Return Information
+### Extract Simple Return Information
 
 Use the statements helpers for rules that care about obvious boolean returns.
 
@@ -81,7 +81,7 @@ if (value === true) {
 }
 ```
 
-## Work With JSDoc Ownership
+### Work With JSDoc Ownership
 
 Use `getTargetNode(...)` and `getVariableOwnedTargetNode(...)` to determine where documentation should attach for function-like nodes.
 
@@ -95,7 +95,7 @@ This is useful when a function is:
 
 These helpers are useful when you are intentionally analyzing TypeScript ESTree extensions rather than neutral AST structure.
 
-## Read Parameter Shapes
+### Read Parameter Shapes
 
 Use the parameter helpers when reading function signatures:
 
@@ -110,7 +110,7 @@ These helpers normalize several ESTree parameter forms so you do not have to rep
 import { getParameterTypeAnnotation } from "@coderrob/typescript-ast/typescript";
 ```
 
-## Unwrap TypeScript Wrapper Expressions
+### Unwrap TypeScript Wrapper Expressions
 
 Use `unwrapTsExpression(...)` when you need the runtime expression underneath TypeScript-only wrappers such as:
 
@@ -122,7 +122,7 @@ Use `unwrapTsExpression(...)` when you need the runtime expression underneath Ty
 import { unwrapTsExpression } from "@coderrob/typescript-ast/typescript";
 ```
 
-## Prefer Guards Plus Helpers
+### Prefer Guards Plus Helpers
 
 A reliable pattern in this package is:
 
