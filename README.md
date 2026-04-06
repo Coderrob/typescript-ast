@@ -1,5 +1,5 @@
 <p align="center">
-	<img src="public/img/typescript-ast-logo.png" alt="@coderrob/typescript-ast logo" />
+  <img src="https://raw.githubusercontent.com/Coderrob/typescript-ast/main/public/img/typescript-ast-logo.png" alt="@coderrob/typescript-ast logo" />
 </p>
 
 <h1 align="center">@coderrob/typescript-ast</h1>
