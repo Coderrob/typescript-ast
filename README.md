@@ -5,7 +5,7 @@
 
 <h1 align="center">@coderrob/typescript-ast</h1>
 
-<p align="center">Reusable, policy-agnostic AST interpretation helpers for TypeScript analysis.</p>
+<p align="center">Policy-agnostic AST navigation helpers with optional TypeScript ESTree extensions.</p>
 
 <p align="center">
   <a href="coverage/"><img src="https://img.shields.io/badge/coverage-95.89%25-brightgreen" alt="Coverage" /></a>
@@ -14,7 +14,7 @@
 
 ## Overview
 
-`@coderrob/typescript-ast` is a focused utility toolkit for reading and interpreting TypeScript ESTree nodes in:
+`@coderrob/typescript-ast` is a focused utility toolkit for navigating AST structure in:
 
 - ESLint rules and custom lint engines
 - static-analysis and architecture checks
@@ -46,11 +46,29 @@ const isTargetCall = isNamedCall(callExpression, "console.log");
 const hasNestedCalls = hasMatchingDescendant(programNode, visitorKeys, (node) => node.type === "CallExpression");
 ```
 
-## Module Surface
+## Entry Points
+
+Use the package root when you want the full current API surface.
+
+Use `@coderrob/typescript-ast/core` when you want the structural AST helpers without the TypeScript-specific parameter and type helpers:
+
+```ts
+import { findAncestor, findDescendant, getCalleeNamePath } from "@coderrob/typescript-ast/core";
+```
+
+Use `@coderrob/typescript-ast/typescript` when you specifically want TypeScript ESTree extensions:
+
+```ts
+import { getParameterTypeAnnotation, unwrapTsExpression } from "@coderrob/typescript-ast/typescript";
+```
+
+## API Surface
+
+Exports are grouped by module domain:
 
 - `ast/calls`: call-shape and callee-name helpers
 - `ast/helpers`: shared AST helper utilities
-- `ast/jsdoc`: JSDoc target/ownership helpers
+- `ast/jsdoc`: JSDoc target and ownership helpers
 - `ast/navigation`: ancestor and boundary navigation helpers
 - `ast/parameters`: parameter and annotation extraction helpers
 - `ast/search`: visitor-key descendant search helpers
@@ -58,6 +76,11 @@ const hasNestedCalls = hasMatchingDescendant(programNode, visitorKeys, (node) =>
 - `ast/types`: type-reference and wrapper-expression helpers
 - `guards/nodes`: ESTree node type guards
 - `import-paths`: import-path utility checks
+
+The library is intentionally split conceptually into:
+
+- core structural helpers: `calls`, `helpers`, `jsdoc`, `navigation`, `search`, `statements`, generic guards, and import-path utilities
+- TypeScript-specific extensions: `parameters`, `types`, and TS-prefixed node guards
 
 ## Functionality
 
@@ -74,7 +97,7 @@ Common tasks this library supports:
 
 Practical examples:
 
-### Detect a specific call pattern
+### Detect A Specific Call Pattern
 
 ```ts
 import { hasCallCalleeNamePath, isNamedMemberCall } from "@coderrob/typescript-ast";
@@ -83,7 +106,7 @@ const isConsoleError = hasCallCalleeNamePath(callNode, ["console", "error"]);
 const isFsReadFileSync = isNamedMemberCall(callNode, "fs", "readFileSync");
 ```
 
-### Search descendants while controlling traversal
+### Search Descendants While Controlling Traversal
 
 ```ts
 import { findDescendant } from "@coderrob/typescript-ast";
@@ -96,7 +119,7 @@ const found = findDescendant(
 );
 ```
 
-### Read parameter typing and unwrap TS expressions
+### Read Parameter Typing And Unwrap TS Expressions
 
 ```ts
 import { getNamedParameterName, getParameterTypeNode, unwrapTsExpression } from "@coderrob/typescript-ast";

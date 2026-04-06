@@ -1,11 +1,15 @@
 # Common Analysis Patterns
 
+## Core Structural Patterns
+
+These patterns work toward a neutral AST-navigation style. They focus on traversing structure and resolving stable shapes before any TypeScript-specific interpretation.
+
 ## Find A Named Call
 
 Use `isNamedCall(...)` when you want exact matching against a static callee path.
 
 ```ts
-import { isNamedCall } from "@coderrob/typescript-ast";
+import { isNamedCall } from "@coderrob/typescript-ast/core";
 
 if (node.type === "CallExpression" && isNamedCall(node, "console.error")) {
   // matched console.error(...)
@@ -23,6 +27,8 @@ This only matches statically resolvable identifier and member-expression callees
 Use `getCalleeNamePath(...)` when you need the resolved string form.
 
 ```ts
+import { getCalleeNamePath } from "@coderrob/typescript-ast/core";
+
 const name = getCalleeNamePath(call.callee);
 if (name === "logger.info") {
   // ...
@@ -43,7 +49,7 @@ Use `findDescendant(...)` with visitor keys when you need to inspect nested shap
 
 ```ts
 import { visitorKeys } from "@typescript-eslint/visitor-keys";
-import { findDescendant, isIdentifier } from "@coderrob/typescript-ast";
+import { findDescendant, isIdentifier } from "@coderrob/typescript-ast/core";
 
 const match = findDescendant(node, visitorKeys, isIdentifier);
 ```
@@ -63,17 +69,6 @@ Examples:
 - whether a `return` is inside a function
 - whether a node is inside a loop or callback
 - whether a match boundary appears before a stop boundary
-
-## Read Parameter Shapes
-
-Use the parameter helpers when reading function signatures:
-
-- `getFirstNonThisParameter(...)`
-- `getNamedParameterIdentifier(...)`
-- `getParameterTypeAnnotation(...)`
-- `getObjectDestructuredParameterTypeNode(...)`
-
-These helpers normalize several ESTree parameter forms so you do not have to repeat the same branching logic.
 
 ## Extract Simple Return Information
 
@@ -95,6 +90,37 @@ This is useful when a function is:
 - a declaration
 - a method
 - a single exported variable initializer
+
+## TypeScript-Specific Patterns
+
+These helpers are useful when you are intentionally analyzing TypeScript ESTree extensions rather than neutral AST structure.
+
+## Read Parameter Shapes
+
+Use the parameter helpers when reading function signatures:
+
+- `getFirstNonThisParameter(...)`
+- `getNamedParameterIdentifier(...)`
+- `getParameterTypeAnnotation(...)`
+- `getObjectDestructuredParameterTypeNode(...)`
+
+These helpers normalize several ESTree parameter forms so you do not have to repeat the same branching logic.
+
+```ts
+import { getParameterTypeAnnotation } from "@coderrob/typescript-ast/typescript";
+```
+
+## Unwrap TypeScript Wrapper Expressions
+
+Use `unwrapTsExpression(...)` when you need the runtime expression underneath TypeScript-only wrappers such as:
+
+- `as`
+- non-null assertions
+- `satisfies`
+
+```ts
+import { unwrapTsExpression } from "@coderrob/typescript-ast/typescript";
+```
 
 ## Prefer Guards Plus Helpers
 
