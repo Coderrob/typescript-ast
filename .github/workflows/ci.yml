@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      HUSKY: 0
+
+    steps:
+      - name: Check Out Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Validate Benchmark Coverage Plan
+        run: npm run benchmark:check
+
+      - name: Run Quality Checks
+        run: npm run quality:check
+
+      - name: Build Distribution
+        run: npm run build
+
+      - name: Check Circular Dependencies
+        run: npm run deps:circular
+
+      - name: Run Publint
+        run: npm run quality:publint
+
+      - name: Verify Package Contents
+        run: npm run release:pack:dry-run

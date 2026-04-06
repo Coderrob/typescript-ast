@@ -1,6 +1,11 @@
 // @ts-check
 "use strict";
 
+/**
+ * Run the public benchmark suite for the built distribution and print a
+ * compact summary table. Each benchmark label intentionally includes the
+ * helper name so `check-coverage.js` can verify benchmark coverage.
+ */
 const { Bench } = require("tinybench");
 const { parse } = require("@typescript-eslint/typescript-estree");
 const { AST_NODE_TYPES } = require("@typescript-eslint/types");
@@ -75,20 +80,45 @@ const wrappedExpression =
 const callIdentifier = simpleCall?.callee?.type === "Identifier" ? simpleCall.callee : null;
 const memberCallee = memberCall?.callee?.type === "MemberExpression" ? memberCall.callee : null;
 
-const jsdocComment = {
-  type: "Block",
-  value: "* benchmark",
-};
+const jsdocCommentAst = parse("/** benchmark */ function documented() {}", {
+  comment: true,
+  jsx: false,
+  loc: true,
+  range: true,
+});
+const jsdocComment = jsdocCommentAst.comments[0] ?? null;
 const jsdocSourceCode = {
   lines: ["/** benchmark */", "function fn() {}"],
   getCommentsBefore() {
-    return [jsdocComment];
+    return jsdocComment ? [jsdocComment] : [];
   },
 };
 
-const ancestorChain = outerFunction
-  ? [{ type: AST_NODE_TYPES.Program }, outerFunction, outerFunction.body, outerReturn].filter(Boolean)
-  : [];
+const ancestorChain = outerFunction && outerReturn ? [astFunction, outerFunction, outerFunction.body, outerReturn] : [];
+
+/**
+ * Convert a tinybench task result into one console-table row.
+ * @param {import("tinybench").Task} task - Completed benchmark task.
+ * @returns {{"Task Name": string, "ops/sec": string, "avg (ns)": string, Margin: string}} Formatted output row.
+ */
+function formatTaskRow(task) {
+  const result = task.result;
+  if (!result || !("throughput" in result) || !("latency" in result)) {
+    return {
+      "Task Name": task.name,
+      "ops/sec": "N/A",
+      "avg (ns)": "N/A",
+      Margin: "N/A",
+    };
+  }
+
+  return {
+    "Task Name": task.name,
+    "ops/sec": Math.round(result.throughput.mean).toLocaleString(),
+    "avg (ns)": (result.latency.mean * 1e6).toFixed(0),
+    Margin: `\u00b1${result.latency.rme.toFixed(2)}%`,
+  };
+}
 
 const bench = new Bench({ iterations: 100000 });
 
@@ -137,12 +167,14 @@ bench
     }
   })
   .add("getJsdocComment: basic", () => {
-    if (outerFunction) {
+    if (outerFunction && jsdocComment) {
       lib.getJsdocComment(jsdocSourceCode, outerFunction);
     }
   })
   .add("isJsdocBlockComment: basic", () => {
-    lib.isJsdocBlockComment(jsdocComment);
+    if (jsdocComment) {
+      lib.isJsdocBlockComment(jsdocComment);
+    }
   })
   .add("findAncestor: function", () => {
     if (callIdentifier) {
@@ -155,11 +187,13 @@ bench
     }
   })
   .add("isInsideBoundary: ancestors", () => {
-    lib.isInsideBoundary(
-      ancestorChain,
-      [AST_NODE_TYPES.Program],
-      [AST_NODE_TYPES.FunctionDeclaration, AST_NODE_TYPES.ArrowFunctionExpression],
-    );
+    if (ancestorChain.length > 0) {
+      lib.isInsideBoundary(
+        ancestorChain,
+        [AST_NODE_TYPES.Program],
+        [AST_NODE_TYPES.FunctionDeclaration, AST_NODE_TYPES.ArrowFunctionExpression],
+      );
+    }
   })
   .add("getNamedParameterIdentifier: identifier", () => {
     if (namedParam) {
@@ -231,15 +265,5 @@ bench
   });
 
 bench.run().then(() => {
-  console.table(
-    bench.tasks.map((task) => {
-      const r = task.result;
-      return {
-        "Task Name": task.name,
-        "ops/sec": r ? Math.round(r.throughput.mean).toLocaleString() : "N/A",
-        "avg (ns)": r ? (r.latency.mean * 1e6).toFixed(0) : "N/A",
-        Margin: r ? `\u00b1${r.latency.rme.toFixed(2)}%` : "N/A",
-      };
-    }),
-  );
+  console.table(bench.tasks.map(formatTaskRow));
 });

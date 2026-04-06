@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD033 MD041 -->
 <p align="center">
   <img src="https://raw.githubusercontent.com/Coderrob/typescript-ast/main/public/img/typescript-ast-logo.png" alt="@coderrob/typescript-ast logo" />
 </p>
@@ -7,8 +8,9 @@
 <p align="center">Reusable, policy-agnostic AST interpretation helpers for TypeScript analysis.</p>
 
 <p align="center">
-	<a href="coverage/"><img src="https://img.shields.io/badge/coverage-95.89%25-brightgreen" alt="Coverage" /></a>
+  <a href="coverage/"><img src="https://img.shields.io/badge/coverage-95.89%25-brightgreen" alt="Coverage" /></a>
 </p>
+<!-- markdownlint-enable MD033 MD041 -->
 
 ## Overview
 

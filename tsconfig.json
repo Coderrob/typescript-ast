@@ -12,8 +12,9 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "ignoreDeprecations": "5.0",
     "moduleResolution": "node",
-    "types": ["vitest/globals"]
+    "types": ["node", "vitest/globals"]
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]

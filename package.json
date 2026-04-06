@@ -11,6 +11,7 @@
   "description": "Reusable, policy-agnostic AST interpretation helpers for TypeScript analysis",
   "devDependencies": {
     "@coderrob/eslint-plugin-zero-tolerance": "^1.2.3",
+    "@types/node": "^25.5.2",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@typescript-eslint/types": "^8.0.0",
@@ -45,7 +46,13 @@
     }
   },
   "files": [
-    "dist"
+    "dist/**/*.cjs",
+    "dist/**/*.mjs",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.cts",
+    "dist/**/*.d.mts",
+    "README.md",
+    "LICENSE"
   ],
   "homepage": "https://github.com/Coderrob/typescript-ast#readme",
   "keywords": [
