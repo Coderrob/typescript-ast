@@ -37,8 +37,7 @@ export function getJsdocComment(
   node: Readonly<TSESTree.Node>,
 ): TSESTree.Comment | null {
   const jsdocComments = sourceCode.getCommentsBefore(node).filter(isJsdocBlockComment);
-  const [lastComment] = jsdocComments.slice(-1);
-  return lastComment ?? null;
+  return jsdocComments[jsdocComments.length - 1] ?? null;
 }
 
 /**

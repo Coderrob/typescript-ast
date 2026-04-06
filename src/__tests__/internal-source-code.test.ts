@@ -5,7 +5,12 @@ import { getLineIndentationPrefix, getNodeLinePrefix, getNodeLineText } from "..
 const OUT_OF_RANGE_LINE_NUMBER = 99;
 const PREFIX_COLUMN = 3;
 
-function createSourceCode(lines: readonly string[]) {
+type SourceCodeLike = {
+  readonly lines: readonly string[];
+  getCommentsBefore(node: Readonly<TSESTree.Node>): readonly TSESTree.Comment[];
+};
+
+function createSourceCode(lines: readonly string[]): Readonly<SourceCodeLike> {
   return {
     lines,
     getCommentsBefore(): readonly TSESTree.Comment[] {
