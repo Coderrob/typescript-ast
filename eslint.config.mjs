@@ -8,7 +8,7 @@ export default [
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: "./tsconfig.json",
+        project: ["./tsconfig.json", "./tsconfig.test.json"],
       },
     },
     plugins: {
@@ -22,6 +22,14 @@ export default [
   {
     files: ["src/**/*.ts"],
     ...zeroTolerance.configs.strict,
+  },
+  {
+    files: ["src/__tests__/**/*.ts"],
+    languageOptions: {
+      parserOptions: {
+        project: "./tsconfig.test.json",
+      },
+    },
   },
   {
     files: ["src/**/*.test.ts"],
