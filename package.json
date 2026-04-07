@@ -5,11 +5,9 @@
   "bugs": {
     "url": "https://github.com/Coderrob/typescript-ast/issues"
   },
-  "dependencies": {
-    "@coderrob/typescript-type-guards": "^1.0.1"
-  },
   "description": "Policy-agnostic AST navigation helpers with optional TypeScript ESTree extensions",
   "devDependencies": {
+    "@coderrob/typescript-type-guards": "^1.0.1",
     "@coderrob/eslint-plugin-zero-tolerance": "^1.2.3",
     "@emnapi/core": "^1.9.2",
     "@emnapi/runtime": "^1.9.2",
@@ -73,11 +71,7 @@
     }
   },
   "files": [
-    "dist/**/*.cjs",
-    "dist/**/*.mjs",
-    "dist/**/*.d.ts",
-    "dist/**/*.d.cts",
-    "dist/**/*.d.mts",
+    "dist",
     "README.md",
     "LICENSE"
   ],
@@ -99,6 +93,7 @@
     ]
   },
   "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
   "name": "@coderrob/typescript-ast",
   "peerDependencies": {
     "@typescript-eslint/types": "^8.0.0"
@@ -113,7 +108,7 @@
   "scripts": {
     "bench": "npm run bench:check && npm run build && node benchmarks/index.js",
     "bench:check": "node benchmarks/check-coverage.js",
-    "build": "npm run clean && tsup --config tsup.config.ts && tsc -p tsconfig.build.json && node scripts/build-types-dual.mjs",
+    "build": "npm run clean && tsup --config tsup.config.ts && node scripts/build-types-dual.mjs",
     "ci": "npm run bench:check && npm run quality && npm run build && npm run deps:circular && npm run publint && npm run pack:dry-run",
     "duplication": "jscpd src/ast src/guards src/internal src/index.ts src/core.ts src/typescript.ts src/import-paths.ts --min-lines 5 --min-tokens 50 --threshold 1 --reporters console",
     "quality": "npm run format:check && npm run lint && npm run duplication && npm run typecheck && npm run test:coverage",
@@ -125,6 +120,7 @@
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "pack:dry-run": "npm pack --dry-run",
+    "prepack": "npm run build",
     "prepare": "husky",
     "prepublishOnly": "npm run release",
     "publish:package": "npm publish",
@@ -133,7 +129,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json"
   },
   "sideEffects": false,
   "type": "commonjs",

@@ -8,6 +8,14 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [1.0.0] - 2026-04-06
 
+### Changed
+
+- Published JavaScript bundles now inline runtime dependencies instead of externalizing `node_modules`.
+- Bundled declaration output now only emits entrypoint type files for `index`, `core`, and `typescript`.
+- Package metadata now relies on `.d.mts` and `.d.cts` export conditions instead of publishing fallback `.d.ts` files.
+- TypeScript settings are now split between `tsconfig.json` for library code and `tsconfig.test.json` for tests.
+- Packaging lifecycle scripts now avoid recursive `npm pack` execution by reserving `prepublishOnly` for release checks and keeping `prepack` build-only.
+
 ### Added
 
 - Productization updates for package metadata and scripts.

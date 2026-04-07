@@ -9,3 +9,6 @@
 # Published runtime/types bundle.
 !dist/
 !dist/**
+
+# Never publish source maps.
+dist/**/*.map
