@@ -8,6 +8,8 @@ import {
   isTSTypeReference,
 } from "../guards/nodes";
 
+type TsWrappingExpression = TSESTree.TSAsExpression | TSESTree.TSNonNullExpression | TSESTree.TSSatisfiesExpression;
+
 /**
  * Get the first type argument from a type reference.
  * @param node - The type reference to inspect.
@@ -84,9 +86,7 @@ function isReadonlyPropertyMember(member: Readonly<TSESTree.TypeElement>): boole
  * @param expression - The expression to inspect.
  * @returns True when the expression wraps another runtime expression.
  */
-function isTsWrappingExpression(
-  expression: Readonly<TSESTree.Expression>,
-): expression is TSESTree.TSAsExpression | TSESTree.TSNonNullExpression | TSESTree.TSSatisfiesExpression {
+function isTsWrappingExpression(expression: Readonly<TSESTree.Expression>): expression is TsWrappingExpression {
   return isTSAsExpression(expression) || isTSNonNullExpression(expression) || isTSSatisfiesExpression(expression);
 }
 
