@@ -3,10 +3,11 @@
  * parent links.
  */
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/types";
-import { isBlockStatement, isFunctionLike, isNodeLike } from "../guards/nodes";
+import { FunctionNode, isBlockStatement, isFunctionLike, isNodeLike } from "../guards/nodes";
 import { getNodeParent as getRuntimeNodeParent, getNodeParentOrNull } from "../internal/ast-runtime";
 
 type BoundaryTypes = ReadonlySet<AST_NODE_TYPES> | ReadonlyArray<AST_NODE_TYPES>;
+type BoundaryNodeOrAncestors = Readonly<TSESTree.Node> | ReadonlyArray<TSESTree.Node> | null | undefined;
 
 /**
  * Walk up the parent chain to find the first ancestor matching the predicate.
@@ -46,14 +47,7 @@ export function findAncestor(
  * @param node - The starting node.
  * @returns The nearest enclosing function-like node, or null if none found.
  */
-export function findEnclosingFunction(
-  node: Readonly<TSESTree.Node> | null | undefined,
-):
-  | TSESTree.FunctionDeclaration
-  | TSESTree.FunctionExpression
-  | TSESTree.ArrowFunctionExpression
-  | TSESTree.TSDeclareFunction
-  | null {
+export function findEnclosingFunction(node: Readonly<TSESTree.Node> | null | undefined): FunctionNode | null {
   for (let parent = getNodeParentOrNull(node); parent !== null; parent = getNodeParentOrNull(parent)) {
     if (isFunctionLike(parent)) {
       return parent;
@@ -178,7 +172,7 @@ export function isInsideBoundary(
  */
 
 export function isInsideBoundary(
-  nodeOrAncestors: Readonly<TSESTree.Node> | ReadonlyArray<TSESTree.Node> | null | undefined,
+  nodeOrAncestors: Readonly<BoundaryNodeOrAncestors>,
   stopTypes: Readonly<BoundaryTypes>,
   matchTypes: Readonly<BoundaryTypes>,
 ): boolean {

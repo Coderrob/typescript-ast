@@ -8,6 +8,9 @@ export type FunctionNode =
   | TSESTree.FunctionExpression
   | TSESTree.TSDeclareFunction;
 
+type MemberObject = TSESTree.Expression | TSESTree.Super;
+type MemberProperty = TSESTree.Expression | TSESTree.PrivateIdentifier;
+
 const TEST_FILE_PATTERN = /\.(test|spec|e2e|integration)\.[cm]?[jt]sx?$/;
 const TEST_DIRECTORY_SEGMENT = "/__tests__/";
 const FUNCTION_LIKE_NODE_TYPES = new Set<AST_NODE_TYPES>([
@@ -264,8 +267,8 @@ export function isUncomputedMemberExpression(
   node: TSESTree.Node | null | undefined,
 ): node is TSESTree.MemberExpression & {
   computed: false;
-  object: TSESTree.Expression | TSESTree.Super;
-  property: TSESTree.Expression | TSESTree.PrivateIdentifier;
+  object: MemberObject;
+  property: MemberProperty;
 } {
   return isMemberExpression(node) && !node.computed;
 }
