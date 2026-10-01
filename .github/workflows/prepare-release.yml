@@ -1,0 +1,75 @@
+name: Prepare Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version increment (revision means patch)
+        required: true
+        type: choice
+        options:
+          - major
+          - minor
+          - revision
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: prepare-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      HUSKY: 0
+    steps:
+      - name: Check Out Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Prepare Version And Changelog
+        id: release
+        env:
+          RELEASE_BUMP: ${{ inputs.bump }}
+        run: |
+          case "$RELEASE_BUMP" in
+            major|minor) npm version "$RELEASE_BUMP" --no-git-tag-version --ignore-scripts ;;
+            revision) npm version patch --no-git-tag-version --ignore-scripts ;;
+            *) echo "Unsupported version increment: $RELEASE_BUMP" >&2; exit 1 ;;
+          esac
+          version="$(node -p 'require("./package.json").version')"
+          node scripts/update-release-changelog.mjs "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Verify Release Candidate
+        run: npm run ci
+
+      - name: Open Release Pull Request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          branch="release/v${VERSION}"
+          if gh pr list --base main --head "$branch" --state open --json number --jq 'length' | grep -qv '^0$'; then
+            echo "An open pull request already exists for $branch" >&2
+            exit 1
+          fi
+          git switch -c "$branch"
+          git add package.json package-lock.json CHANGELOG.md
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "chore: prepare v${VERSION} release"
+          git push origin "$branch"
+          printf 'Bump the package to v%s and move the Unreleased notes into a dated release section.\n\nValidation: `npm run ci` passed.\n' "$VERSION" > "$RUNNER_TEMP/release-pr-body.md"
+          gh pr create --base main --head "$branch" --title "Prepare v${VERSION} release" --body-file "$RUNNER_TEMP/release-pr-body.md"
