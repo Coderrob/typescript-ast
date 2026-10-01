@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Node.js 18 or newer
+- Node.js 24 or newer
 - TypeScript ESTree-compatible nodes, typically from `@typescript-eslint/typescript-estree` or ESLint parser services
 
 ## Installation

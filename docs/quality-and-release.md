@@ -31,6 +31,7 @@ npm run ci
 npm run deps:graph
 npm run deps:circular
 npm run pack:dry-run
+npm run pack:smoke
 npm run publint
 ```
 
@@ -40,13 +41,14 @@ npm run publint
 - public package access
 - distributable output published from `dist`
 - supported package entry points are the root export plus `core` and `typescript`
-- Node.js engine floor: 18+
+- Node.js engine floor: 24+; Node 24 LTS is the default CI target
 - cyclomatic complexity enforced below `4` on production TypeScript
 - production-source duplication enforced below `1%`
 
 ## Artifact Shape
 
 - the publish tarball contains the built entry points and their declaration files
+- `npm run pack:smoke` checks the built tarball in a temporary CommonJS, ESM, and NodeNext consumer after `npm run build`
 - test output and source maps are intentionally excluded from the package
 - `src/internal` remains a private implementation concern even when internal declaration files are emitted to support public type references
 

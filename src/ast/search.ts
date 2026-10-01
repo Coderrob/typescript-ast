@@ -90,13 +90,14 @@ function getChildNodes(node: Readonly<TSESTree.Node>, visitorKeys: Readonly<Sear
  * @param visitorKeys - The visitor keys map for traversal.
  * @param predicate - The predicate to match descendants against.
  * @returns True if any descendant matches the predicate.
+ * @deprecated Use hasSomeDescendant for boolean searches.
  */
 export function hasMatchingDescendant(
   node: Readonly<TSESTree.Node>,
   visitorKeys: Readonly<SearchVisitorKeyMapLike>,
   predicate: (node: Readonly<TSESTree.Node>) => boolean,
 ): boolean {
-  return findDescendant(node, visitorKeys, predicate) !== null;
+  return hasSomeDescendant(node, visitorKeys, predicate);
 }
 
 /**
@@ -106,6 +107,7 @@ export function hasMatchingDescendant(
  * @param predicate - The predicate to match descendants against.
  * @param stopPredicate - The predicate that halts traversal into a subtree.
  * @returns True if any descendant matches before the stop condition is reached.
+ * @deprecated Use hasSomeDescendant with a stop predicate.
  */
 export function hasMatchingDescendantUntil(
   node: Readonly<TSESTree.Node>,
@@ -113,7 +115,7 @@ export function hasMatchingDescendantUntil(
   predicate: (node: Readonly<TSESTree.Node>) => boolean,
   stopPredicate: (node: Readonly<TSESTree.Node>) => boolean,
 ): boolean {
-  return findDescendant(node, visitorKeys, predicate, stopPredicate) !== null;
+  return hasSomeDescendant(node, visitorKeys, predicate, stopPredicate);
 }
 
 /**

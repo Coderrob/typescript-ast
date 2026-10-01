@@ -6,6 +6,16 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Changed
+
+- Boundary checks now handle deep parent chains and ancestor arrays without recursive calls.
+- `hasSomeDescendant` is the preferred boolean descendant-search helper; the older `hasMatchingDescendant` helpers remain available as compatibility aliases.
+- Documentation now consistently states the Node.js 24 minimum and Node 24 LTS development target.
+
+### Added
+
+- A packed-package smoke check for CommonJS, ESM, and NodeNext declarations in the CI gate.
+
 ## [1.0.0] - 2026-04-06
 
 ### Changed
