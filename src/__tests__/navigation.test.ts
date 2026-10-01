@@ -17,6 +17,8 @@ import {
   attachParents,
 } from "./test-helpers";
 
+const DEEP_ANCESTOR_COUNT = 20_000;
+
 function parseFnBodyRet(code: string): TSESTree.Statement {
   const ast = parseProgWithParents(code);
   return asBlockStatement(asFunctionDeclaration(ast.body[0]).body).body[0];
@@ -114,6 +116,20 @@ function testIsInsideBoundary(): void {
       true,
     );
   });
+  it("should handle a deep parent chain without exhausting the call stack", () => {
+    const program = parseProg("x;");
+    const leaf = program.body[0];
+    let child: object = leaf;
+
+    for (let index = 0; index < DEEP_ANCESTOR_COUNT; index += 1) {
+      const parent = { type: AST_NODE_TYPES.BlockStatement };
+      Reflect.set(child, "parent", parent);
+      child = parent;
+    }
+
+    Reflect.set(child, "parent", program);
+    expect(isInsideBoundary(leaf, [], [AST_NODE_TYPES.Program])).toBe(true);
+  });
 }
 
 function testIsInsideBoundaryAncestorArrayPrecedence(): void {
@@ -171,6 +187,15 @@ function testIsInsideBoundaryAncestors(): void {
   it("should return false for node traversal when no parent exists", () => {
     const standaloneNode = parseProg("x;").body[0];
     expect(isInsideBoundary(standaloneNode, [AST_NODE_TYPES.BlockStatement], [AST_NODE_TYPES.Program])).toBe(false);
+  });
+  it("should handle a deep ancestor array without exhausting the call stack", () => {
+    const program = parseProg("x;");
+    const ancestors: ReadonlyArray<TSESTree.Node> = [
+      program,
+      ...Array.from({ length: DEEP_ANCESTOR_COUNT }, () => program.body[0]),
+    ];
+
+    expect(isInsideBoundary(ancestors, [], [AST_NODE_TYPES.Program])).toBe(true);
   });
 }
 

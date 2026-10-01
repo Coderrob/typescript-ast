@@ -8,6 +8,7 @@ import { getNodeParent as getRuntimeNodeParent, getNodeParentOrNull } from "../i
 
 type BoundaryTypes = ReadonlySet<AST_NODE_TYPES> | ReadonlyArray<AST_NODE_TYPES>;
 type BoundaryNodeOrAncestors = Readonly<TSESTree.Node> | ReadonlyArray<TSESTree.Node> | null | undefined;
+type OptionalNode = TSESTree.Node | undefined;
 
 /**
  * Walk up the parent chain to find the first ancestor matching the predicate.
@@ -55,6 +56,21 @@ export function findEnclosingFunction(node: Readonly<TSESTree.Node> | null | und
   }
 
   return null;
+}
+
+/**
+ * Resolve an ancestor boundary while preserving sparse-array behavior.
+ * @param ancestor - The ancestor at the current index.
+ * @param stopTypes - Boundary types that stop traversal.
+ * @param matchTypes - Boundary types that count as a match.
+ * @returns The boundary decision, or null to continue traversal.
+ */
+function getAncestorBoundaryDecision(
+  ancestor: Readonly<TSESTree.Node> | undefined,
+  stopTypes: Readonly<BoundaryTypes>,
+  matchTypes: Readonly<BoundaryTypes>,
+): boolean | null {
+  return ancestor === undefined ? false : getBoundaryDecision(ancestor.type, stopTypes, matchTypes);
 }
 
 /**
@@ -194,34 +210,14 @@ function isInsideBoundaryForAncestors(
   stopTypes: Readonly<BoundaryTypes>,
   matchTypes: Readonly<BoundaryTypes>,
 ): boolean {
-  return isInsideBoundaryForAncestorsAtIndex(ancestors, ancestors.length - 1, stopTypes, matchTypes);
-}
-
-/**
- * Check boundary membership at a specific ancestor index.
- * @param ancestors - The ancestors ordered from outermost to innermost.
- * @param index - The current ancestor index.
- * @param stopTypes - Boundary types that stop traversal.
- * @param matchTypes - Boundary types that count as a match.
- * @returns True if a match boundary is reached before a stop boundary.
- */
-function isInsideBoundaryForAncestorsAtIndex(
-  ancestors: ReadonlyArray<TSESTree.Node>,
-  index: number,
-  stopTypes: Readonly<BoundaryTypes>,
-  matchTypes: Readonly<BoundaryTypes>,
-): boolean {
-  const ancestor = ancestors[index];
-  if (ancestor === undefined) {
-    return false;
+  for (const ancestor of iterateAncestors(ancestors)) {
+    const boundaryDecision = getAncestorBoundaryDecision(ancestor, stopTypes, matchTypes);
+    if (boundaryDecision !== null) {
+      return boundaryDecision;
+    }
   }
 
-  const boundaryDecision = getBoundaryDecision(ancestor.type, stopTypes, matchTypes);
-  if (boundaryDecision !== null) {
-    return boundaryDecision;
-  }
-
-  return isInsideBoundaryForAncestorsAtIndex(ancestors, index - 1, stopTypes, matchTypes);
+  return false;
 }
 
 /**
@@ -251,16 +247,14 @@ function isInsideBoundaryForParentNode(
   stopTypes: Readonly<BoundaryTypes>,
   matchTypes: Readonly<BoundaryTypes>,
 ): boolean {
-  if (!node) {
-    return false;
+  for (const parent of iterateParentNodes(node)) {
+    const boundaryDecision = getBoundaryDecision(parent.type, stopTypes, matchTypes);
+    if (boundaryDecision !== null) {
+      return boundaryDecision;
+    }
   }
 
-  const boundaryDecision = getBoundaryDecision(node.type, stopTypes, matchTypes);
-  if (boundaryDecision !== null) {
-    return boundaryDecision;
-  }
-
-  return isInsideBoundaryForParentNode(getNodeParent(node), stopTypes, matchTypes);
+  return false;
 }
 
 /**
@@ -270,4 +264,26 @@ function isInsideBoundaryForParentNode(
  */
 function isNodeArray(value: unknown): value is ReadonlyArray<TSESTree.Node> {
   return Array.isArray(value) && value.every(isNodeLike);
+}
+
+/**
+ * Iterate an ancestor array from innermost to outermost, including empty slots.
+ * @param ancestors - The ancestors ordered from outermost to innermost.
+ * @returns The ancestors in boundary-check order.
+ */
+function* iterateAncestors(ancestors: ReadonlyArray<TSESTree.Node>): Iterable<OptionalNode> {
+  for (let index = ancestors.length - 1; index >= 0; index -= 1) {
+    yield ancestors[index];
+  }
+}
+
+/**
+ * Iterate from a parent node toward the root without using the call stack.
+ * @param node - The first parent node.
+ * @returns Each parent node in boundary-check order.
+ */
+function* iterateParentNodes(node: Readonly<TSESTree.Node> | undefined): Iterable<TSESTree.Node> {
+  for (let parent = node; parent !== undefined; parent = getNodeParent(parent)) {
+    yield parent;
+  }
 }

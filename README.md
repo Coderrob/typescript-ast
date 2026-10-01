@@ -26,7 +26,7 @@ If you also need to parse source code or supply visitor keys in your own tooling
 
 ## Requirements
 
-- Node.js `>=18`
+- Node.js `>=24` (Node 24 LTS is the default development and CI target)
 - AST nodes compatible with `@typescript-eslint/types` / `TSESTree`
 - A visitor key map for descendant-search helpers such as `visitorKeys` from `@typescript-eslint/visitor-keys`
 
@@ -137,7 +137,7 @@ The public API is organized by concern rather than by large utility classes.
 | --------------------- | --------------------------------------------------------------------------------------------------------- |
 | Call analysis         | `getCalleeNamePath`, `getCallArgument`, `hasCallCalleeNamePath`, `isNamedCall`, `isNamedMemberCall`       |
 | Structural navigation | `findAncestor`, `findEnclosingFunction`, `getNodeParent`, `getParentBlockStatement`, `isInsideBoundary`   |
-| Descendant search     | `findDescendant`, `hasMatchingDescendant`, `hasMatchingDescendantUntil`, `hasSomeDescendant`              |
+| Descendant search     | `findDescendant` for a node, `hasSomeDescendant` for a boolean result                                     |
 | JSDoc ownership       | `getJsdocComment`, `getTargetNode`, `getParentOwnedTargetNode`, `isJsdocBlockComment`                     |
 | Statement helpers     | `getBooleanLiteralReturnValue`, `getReturnStatement`, `getSingleReturnStatement`                          |
 | TypeScript helpers    | `getParameterTypeAnnotation`, `getParameterTypeNode`, `getFirstTypeArgument`, `unwrapTsExpression`        |
@@ -179,7 +179,7 @@ Useful commands:
 
 ## Benchmarks
 
-Latest local benchmark snapshot:
+Historical benchmark snapshot from before the Node 24 requirement:
 
 - Date: April 7, 2026
 - Command: `npm run bench`

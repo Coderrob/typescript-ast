@@ -106,7 +106,7 @@
     "bench": "npm run bench:check && npm run build && node benchmarks/index.js",
     "bench:check": "node benchmarks/check-coverage.js",
     "build": "npm run clean && tsup --config tsup.config.ts && node scripts/build-types-dual.mjs",
-    "ci": "npm run bench:check && npm run quality && npm run build && npm run deps:circular && npm run publint && npm run pack:dry-run",
+    "ci": "npm run bench:check && npm run release:check && npm run quality && npm run build && npm run deps:circular && npm run publint && npm run pack:smoke",
     "clean": "rimraf dist coverage",
     "deps:circular": "madge --circular --extensions ts src/index.ts src/core.ts src/typescript.ts",
     "deps:graph": "madge --extensions ts src/index.ts src/core.ts src/typescript.ts",
@@ -116,6 +116,7 @@
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "pack:dry-run": "npm pack --dry-run",
+    "pack:smoke": "node scripts/check-packed-package.mjs",
     "prepack": "npm run build",
     "prepare": "husky",
     "prepublishOnly": "npm run release",
@@ -123,6 +124,7 @@
     "publish:package": "npm publish",
     "quality": "npm run format:check && npm run lint && npm run duplication && npm run typecheck && npm run test:coverage",
     "release": "npm run quality && npm run build && npm run deps:circular && npm run publint",
+    "release:check": "node --test scripts/__tests__/release.test.mjs",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
@@ -133,6 +135,6 @@
   "types": "dist/index.d.ts",
   "version": "1.0.0",
   "allowScripts": {
-    "esbuild@0.27.7": true
+    "esbuild@0.27.2": true
   }
 }

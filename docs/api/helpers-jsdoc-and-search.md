@@ -72,6 +72,8 @@
 - `hasMatchingDescendantUntil(node, visitorKeys, predicate, stopPredicate)`
 - `hasSomeDescendant(node, visitorKeys, predicate, stopPredicate?)`
 
+Use `findDescendant` when you need the matched node and `hasSomeDescendant` when you only need a boolean. `hasMatchingDescendant` and `hasMatchingDescendantUntil` remain available as compatibility aliases for `hasSomeDescendant` without and with a stop predicate, respectively.
+
 ### Behavior notes
 
 - traversal is depth-first
